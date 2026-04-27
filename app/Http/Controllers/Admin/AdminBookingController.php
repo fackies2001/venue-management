@@ -1,0 +1,206 @@
+<?php
+
+namespace App\Http\Controllers\Admin;
+
+use App\Http\Controllers\Controller;
+use Illuminate\Support\Facades\Mail;
+use Illuminate\Support\Facades\Storage;
+use App\Models\Booking;
+use App\Models\VenueEvent;
+use App\Models\Venue;
+use Illuminate\Http\Request;
+use App\Mail\BookingApproved;
+use App\Mail\BookingCancelled;
+use App\Mail\BookingRejected;
+use Illuminate\Support\Facades\Auth;
+
+class AdminBookingController extends Controller
+{
+    public function index(Request $request)
+    {
+        $query = Booking::with(['user', 'venue'])->latest();
+
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+        if ($venueId = $request->input('venue_id')) {
+            $query->where('venue_id', $venueId);
+        }
+
+        $bookings = $query->get();
+        $venues   = Venue::active()->get();
+
+        return view('admin.bookings.index', compact('bookings', 'venues'));
+    }
+
+    public function show(Booking $booking)
+    {
+        $booking->load(['user', 'venue']);
+        return view('admin.bookings.show', compact('booking'));
+    }
+
+    // ✅ DINAGDAG: Edit View para sa Admin
+    public function edit(Booking $booking)
+    {
+        $venues = Venue::active()->get();
+        $buildings = Venue::active()
+            ->whereNotNull('building')
+            ->distinct()
+            ->orderBy('building')
+            ->pluck('building');
+
+        return view('admin.bookings.edit', compact('booking', 'venues', 'buildings'));
+    }
+
+    // ✅ DINAGDAG: Update logic para sa Admin
+    public function update(Request $request, Booking $booking)
+    {
+
+
+
+        $validated = $request->validate([
+            'venue_id'           => ['required', 'exists:venues,id'],
+            'event_title'        => ['required', 'string', 'max:255'],
+            'agenda'             => ['nullable', 'string', 'max:255'],
+            'event_date'         => ['required', 'date'],
+            'start_time'         => ['required', 'date_format:H:i'],
+            'end_time'           => ['required', 'date_format:H:i', 'after:start_time'],
+            'expected_attendees' => ['required', 'integer', 'min:1'],
+            'building'           => ['required', 'string'],
+            'booker_name'        => ['required', 'string', 'max:255'],
+            'service'            => ['required', 'string', 'max:255'],
+            'division'           => ['required', 'string', 'max:255'],
+            'email'              => ['required', 'email'],
+            'phone'              => ['required', 'string', 'max:255'],
+            'attachment_path'    => ['nullable', 'file', 'max:5120', 'mimes:pdf,docx,jpg,png'],
+            'remarks'            => ['nullable', 'string'],
+        ]);
+
+        if ($request->hasFile('attachment_path')) {
+            if ($booking->attachment_path) {
+                Storage::disk('public')->delete($booking->attachment_path);
+            }
+            $validated['attachment_path'] = $request->file('attachment_path')->store('attachments', 'public');
+        }
+
+        // Check conflicts (ignore this booking's ID)
+        $conflict = Booking::where('venue_id', $validated['venue_id'])
+            ->where('id', '!=', $booking->id)
+            ->where('event_date', $validated['event_date'])
+            ->where('status', Booking::STATUS_APPROVED)
+            ->where(function ($q) use ($validated) {
+                $q->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
+                    ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']]);
+            })->exists();
+
+        if ($conflict) {
+            return back()->withErrors(['event_date' => 'The venue is already booked at that time.'])->withInput();
+        }
+
+        $booking->update($validated);
+
+        // ✅ Kung approved na, i-update din yung naka-reflect sa Calendar (VenueEvent)
+        if ($booking->status === Booking::STATUS_APPROVED) {
+            $booking->venueEvent()->update([
+                'venue_id'   => $booking->venue_id,
+                'title'      => $booking->event_title,
+                'event_date' => $booking->event_date,
+                'start_time' => \Carbon\Carbon::parse($booking->event_date)->toDateString() . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i:s'),
+                'end_time'   => \Carbon\Carbon::parse($booking->event_date)->toDateString() . ' ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i:s'),
+            ]);
+        }
+
+        $prefix = match (auth()->user()->role) {
+            'ndrrmoc_admin' => 'ndrrmoc',
+            'nab_admin' => 'nab',
+            'super_admin' => 'super-admin',
+            default => 'user',
+        };
+
+        return redirect()->route($prefix . '.bookings.index')
+            ->with('success', 'Booking updated successfully.');
+    }
+
+    // ✅ DINAGDAG: Destroy logic para sa Admin
+    public function destroy(Booking $booking)
+    {
+        if ($booking->attachment_path) {
+            Storage::disk('public')->delete($booking->attachment_path);
+        }
+
+        $booking->venueEvent()->delete(); // Tanggalin din sa Calendar kung meron
+        $booking->delete();
+
+        return back()->with('success', 'Booking completely deleted.');
+    }
+
+    public function approve(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'admin_remarks' => ['nullable', 'string'],
+        ]);
+
+        $booking->update([
+            'status'        => Booking::STATUS_APPROVED,
+            'admin_remarks' => $request->input('admin_remarks'),
+            'approved_by'   => Auth::id(),
+            'approved_at'   => now(),
+        ]);
+
+        VenueEvent::create([
+            'venue_id'   => $booking->venue_id,
+            'booking_id' => $booking->id,
+            'title'      => $booking->event_title,
+            'event_date' => $booking->event_date,
+            'start_time' => $booking->event_date->toDateString() . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i:s'),
+            'end_time'   => $booking->event_date->toDateString() . ' ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i:s'),
+            'created_by' => Auth::id(),
+        ]);
+
+        Mail::to($booking->user->email)->send(new BookingApproved($booking));
+
+        return back()->with('success', 'Booking approved and user notified via email.');
+    }
+
+    public function reject(Request $request, Booking $booking)
+    {
+        $request->validate([
+            'admin_remarks' => ['required', 'string'],
+        ]);
+
+        $booking->update([
+            'status'        => Booking::STATUS_REJECTED,
+            'admin_remarks' => $request->input('admin_remarks'),
+            'approved_by'   => Auth::id(),
+            'approved_at'   => now(),
+        ]);
+
+        Mail::to($booking->user->email)->send(new BookingRejected($booking));
+
+        return back()->with('success', 'Booking rejected and user notified via email.');
+    }
+
+    public function history(Request $request)
+    {
+        $query = Booking::with(['user', 'venue'])
+            ->whereIn('status', [
+                Booking::STATUS_APPROVED,
+                Booking::STATUS_REJECTED,
+                Booking::STATUS_CANCELLED,
+            ]);
+
+        if ($status = $request->input('status')) {
+            $query->where('status', $status);
+        }
+        if ($from = $request->input('date_from')) {
+            $query->whereDate('event_date', '>=', $from);
+        }
+        if ($to = $request->input('date_to')) {
+            $query->whereDate('event_date', '<=', $to);
+        }
+
+        $history = $query->latest('event_date')->get();
+
+        return view('super-admin.history', compact('history'));
+    }
+}
