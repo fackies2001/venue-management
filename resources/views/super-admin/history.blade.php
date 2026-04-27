@@ -178,29 +178,40 @@
                                 <div class="detail-label">Event Title</div>
                                 <div class="detail-value" id="dEventTitle"></div>
                             </div>
+
                             <div class="detail-row">
                                 <div class="detail-label">Venue</div>
                                 <div class="detail-value" id="dVenue"></div>
                             </div>
+
                             <div class="detail-row">
                                 <div class="detail-label">Event Date</div>
                                 <div class="detail-value" id="dDate"></div>
                             </div>
+
                             <div class="detail-row">
                                 <div class="detail-label">Time</div>
                                 <div class="detail-value" id="dTime"></div>
                             </div>
+
                             <div class="detail-row">
                                 <div class="detail-label">Agenda / Topic</div>
                                 <div class="detail-value" id="dAgenda"></div>
                             </div>
+
                             <div class="detail-row">
                                 <div class="detail-label">Participants</div>
                                 <div class="detail-value" id="dParticipants"></div>
                             </div>
+
                             <div class="detail-row">
                                 <div class="detail-label">Remarks</div>
                                 <div class="detail-value" id="dRemarks"></div>
+                            </div>
+
+                            <div class="detail-row">
+                                <div class="detail-label">Attachment</div>
+                                <div class="detail-value" id="dAttachment"></div>
                             </div>
                         </div>
 
@@ -286,6 +297,8 @@
                 'status_class' => $b->statusBadgeClass(),
                 'approved_at' => $b->approved_at ? $b->approved_at->format('M d, Y h:i A') : '—',
                 'admin_remarks' => $b->admin_remarks ?? '—',
+                'attachment_path' => $b->attachment_path ? Storage::url($b->attachment_path) : null,
+                'attachment_name' => $b->attachment_path ? basename($b->attachment_path) : null,
             ],
         );
     @endphp
@@ -348,6 +361,15 @@
                 `<span class="badge ${b.status_class} px-2 py-1">${b.status}</span>`;
             document.getElementById('dProcessed').textContent = b.approved_at;
             document.getElementById('dAdminRemarks').textContent = b.admin_remarks;
+
+            // Attachment
+            const attachEl = document.getElementById('dAttachment');
+            if (b.attachment_path) {
+                attachEl.innerHTML = `<a href="${b.attachment_path}" target="_blank">
+        <i class="bi bi-paperclip me-1"></i>View Attachment</a>`;
+            } else {
+                attachEl.textContent = '—';
+            }
 
             new bootstrap.Modal(document.getElementById('detailModal')).show();
         }

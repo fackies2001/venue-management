@@ -52,7 +52,7 @@ class VenueBookingController extends Controller
             'division'           => ['required', 'string', 'max:255'],
             'email'              => ['required', 'email'],
             'phone'              => ['required', 'string', 'max:255'],
-            'attachment_path'    => ['nullable', 'file', 'max:5120', 'mimes:pdf,docx,jpg,png'],
+            'attachment_path' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
             'remarks'            => ['nullable', 'string'],
         ]);
 
@@ -144,7 +144,7 @@ class VenueBookingController extends Controller
             'division'           => ['required', 'string', 'max:255'],
             'email'              => ['required', 'email'],
             'phone'              => ['required', 'string', 'max:255'],
-            'attachment_path'    => ['nullable', 'file', 'max:5120', 'mimes:pdf,docx,jpg,png'],
+            'attachment_path' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
             'remarks'            => ['nullable', 'string'],
         ]);
 
