@@ -31,15 +31,14 @@ class RegisterController extends Controller
             'department'     => $validated['department'],
             'contact_number' => $validated['contact_number'] ?? null,
             'role'           => User::ROLE_USER,
-            'is_active'      => true, // ← active agad, email verify na lang
+            'is_active'      => false // ← inactive email verification pending
         ]);
 
         // Send verification email
         $user->sendEmailVerificationNotification();
 
-        // Auto-login then redirect to verify page
-        auth()->login($user);
-
-        return redirect()->route('verification.notice');
+        // ✅ NO auto-login — redirect to login with instruction
+        return redirect()->route('login')
+            ->with('success', 'Registration successful! Please check your email to verify your account before logging in.');
     }
 }

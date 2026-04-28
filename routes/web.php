@@ -33,6 +33,9 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
     if (! $user->hasVerifiedEmail()) {
         $user->markEmailAsVerified();
         event(new Verified($user));
+
+        // ✅ Directly activate — hindi na dependent sa listener
+        $user->update(['is_active' => true]);
     }
 
     return redirect()->route('login')
@@ -82,7 +85,7 @@ Route::middleware(['auth', 'verified', 'role:user'])->prefix('dashboard')->name(
 
 
 // ── NDRRMOC Admin Routes ──────────────────────────────────────
-Route::middleware(['auth', 'role:ndrrmoc_admin'])->prefix('ndrrmoc')->name('ndrrmoc.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:ndrrmoc_admin'])->prefix('ndrrmoc')->name('ndrrmoc.')->group(function () {
     Route::get('/', fn() => redirect()->route('ndrrmoc.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
@@ -100,8 +103,10 @@ Route::middleware(['auth', 'role:ndrrmoc_admin'])->prefix('ndrrmoc')->name('ndrr
 });
 
 
+
 // ── NAB Admin Routes ──────────────────────────────────────────
-Route::middleware(['auth', 'role:nab_admin'])->prefix('nab')->name('nab.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:nab_admin'])->prefix('nab')->name('nab.')->group(function () {
+    Route::get('/', fn() => redirect()->route('nab.bookings.index'))->name('dashboard');
     Route::get('/', fn() => redirect()->route('nab.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
@@ -120,7 +125,7 @@ Route::middleware(['auth', 'role:nab_admin'])->prefix('nab')->name('nab.')->grou
 
 
 // ── Super Admin Routes ────────────────────────────────────────
-Route::middleware(['auth', 'role:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/', fn() => redirect()->route('super-admin.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
