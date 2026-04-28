@@ -70,19 +70,13 @@
                                     <span class="badge bg-{{ $color }}">{{ strtoupper($user->role) }}</span>
                                 </td>
                                 <td>{{ $user->department ?? '—' }}</td>
-                                
-                                {{-- UPDATED STATUS COLUMN --}}
                                 <td>
-                                    @if (!$user->is_active)
-                                        <span class="badge badge-rejected">Deactivated</span>
-                                    @elseif (is_null($user->email_verified_at))
-                                        <span class="badge bg-secondary">Unverified</span>
-                                    @else
+                                    @if ($user->is_active)
                                         <span class="badge badge-approved">Active</span>
+                                    @else
+                                        <span class="badge badge-rejected">Inactive</span>
                                     @endif
                                 </td>
-                                {{-- END UPDATED STATUS COLUMN --}}
-
                                 <td data-order="{{ $user->created_at->timestamp }}">
                                     {{ $user->created_at->format('M d, Y') }}
                                 </td>

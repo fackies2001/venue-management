@@ -353,12 +353,23 @@
                         <div class="col-12">
                             <label class="form-label">Attachment <span
                                     class="text-muted fw-normal">(Optional)</span></label>
+
+                            {{-- UPDATED ATTACHMENT SECTION FOR EDIT PAGE --}}
                             @if ($booking->attachment_path)
-                                <div class="mb-2 small">
-                                    Current file: <a href="{{ Storage::url($booking->attachment_path) }}"
-                                        target="_blank">View File</a>
+                                <div class="mb-2 small d-flex align-items-center gap-2">
+                                    <span class="text-muted">Current file:</span>
+                                    @php
+                                        $fileUrl = asset(Storage::url($booking->attachment_path));
+                                        $fileExt = strtolower(pathinfo($booking->attachment_path, PATHINFO_EXTENSION));
+                                    @endphp
+                                    <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
+                                        style="font-size: 0.8rem;"
+                                        onclick="openFileModal('{{ $fileUrl }}', '{{ $fileExt }}')">
+                                        <i class="bi bi-eye me-1"></i> View File
+                                    </button>
                                 </div>
                             @endif
+
                             <input type="file" name="attachment_path"
                                 class="form-control @error('attachment_path') is-invalid @enderror"
                                 accept=".pdf,.docx,.jpg,.png">
@@ -384,18 +395,103 @@
         </div>
     </form>
 
-    @push('scripts')
-        <script>
-            document.getElementById('buildingSelect').addEventListener('change', function() {
-                const building = this.value;
-                const venueSelect = document.getElementById('venueSelect');
-                venueSelect.value = '';
-                venueSelect.options[0].textContent = '— Select Venue —';
-                Array.from(venueSelect.options).forEach(opt => {
-                    if (!opt.value) return;
-                    opt.hidden = building ? opt.dataset.building !== building : true;
-                });
-            });
-        </script>
-    @endpush
+    {{-- FILE PREVIEW MODAL (OPTION 1: 95vw / 95vh) --}}
+    <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered" style="max-width: 95vw;">
+            <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none; height: 95vh;">
+                <div class="modal-header" style="background:var(--ocd-blue); color:#fff; border:none;">
+                    <h5 class="modal-title fw-bold">
+                        <i class="bi bi-file-earmark-text me-2"></i>Attachment Preview
+                    </h5>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
+                        aria-label="Close"></button>
+                </div>
+                <div class="modal-body p-0 d-flex justify-content-center align-items-center" id="fileViewerBody"
+                    style="background: #f8f9fa; overflow-y: auto;">
+                    {{-- JS Injected Content --}}
+                </div>
+                <div class="modal-footer" style="border-top:1px solid #f0f2f5; background:#fafbfc; padding: 0.5rem 1rem;">
+                    <a href="#" id="downloadFileBtn" class="btn btn-sm btn-primary fw-semibold" download
+                        target="_blank">
+                        <i class="bi bi-download me-1"></i> Download File
+                    </a>
+                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
+
+@push('scripts')
+    <script>
+        document.getElementById('buildingSelect').addEventListener('change', function() {
+            const building = this.value;
+            const venueSelect = document.getElementById('venueSelect');
+            venueSelect.value = '';
+            venueSelect.options[0].textContent = '— Select Venue —';
+            Array.from(venueSelect.options).forEach(opt => {
+                if (!opt.value) return;
+                opt.hidden = building ? opt.dataset.building !== building : true;
+            });
+        });
+
+        // Script para sa File Preview Modal
+        function openFileModal(fileUrl, fileExt) {
+            const modalBody = document.getElementById('fileViewerBody');
+            const downloadBtn = document.getElementById('downloadFileBtn');
+
+            // Set download button link
+            downloadBtn.href = fileUrl;
+
+            // Loading state
+            modalBody.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <p class="mt-3 text-muted">Loading preview...</p>
+                </div>`;
+
+            let content = '';
+
+            // Image Preview
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
+                content =
+                    `<img src="${fileUrl}" class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain; padding: 1rem;" alt="Attachment">`;
+            }
+            // PDF Preview
+            else if (fileExt === 'pdf') {
+                content =
+                    `<iframe src="${fileUrl}#toolbar=0" width="100%" height="100%" style="border: none; min-height: 75vh;"></iframe>`;
+            }
+            // Office Documents Preview (Word, Excel)
+            else if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExt)) {
+                const encodedUrl = encodeURIComponent(fileUrl);
+                content = `
+                    <div class="w-100 h-100 d-flex flex-column">
+                        <div class="alert alert-warning m-3 text-center small">
+                            <i class="bi bi-exclamation-triangle-fill me-1"></i> 
+                            <strong>Note:</strong> Word/Excel preview requires a public internet connection. If it doesn't load on localhost, please use the download button below.
+                        </div>
+                        <iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}" width="100%" height="100%" style="border: none; flex-grow: 1;"></iframe>
+                    </div>`;
+            }
+            // Fallback para sa hindi supported na files
+            else {
+                content = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+                        <h5 class="mt-3">Preview Not Supported</h5>
+                        <p class="text-muted">No preview available for .${fileExt} files.</p>
+                        <p class="small text-muted">Please download the file to view its contents.</p>
+                    </div>`;
+            }
+
+            // Inject content to modal
+            modalBody.innerHTML = content;
+
+            // Show Modal
+            const previewModal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
+            previewModal.show();
+        }
+    </script>
+@endpush
