@@ -75,7 +75,8 @@
             font-weight: 800;
             font-size: 1.45rem;
             letter-spacing: 0.5px;
-            margin-bottom: 0.2rem;
+            margin-bottom: 0.5rem;
+            /* Binago: from 0.2rem ginawang 0.5rem para mas umaliwalas */
             color: #fff;
             line-height: 1.2;
         }
@@ -83,6 +84,8 @@
         .brand-subtitle {
             font-size: 0.78rem;
             color: rgba(255, 255, 255, 0.6);
+            margin-top: 0.2rem;
+            /* Dinagdag: para may konting breathing room sa taas */
         }
 
         /* Sidebar Navigation */

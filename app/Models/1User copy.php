@@ -21,7 +21,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
-        'division_id',
+        'department',
         'contact_number',
         'is_active',
         'last_login_at',
@@ -39,6 +39,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'last_login_at'     => 'datetime',
     ];
 
+    // ── Role helpers ──────────────────────────────────────────
     public function isUser(): bool
     {
         return $this->role === self::ROLE_USER;
@@ -65,13 +66,9 @@ class User extends Authenticatable implements MustVerifyEmail
         ]);
     }
 
+    // ── Relationships ─────────────────────────────────────────
     public function bookings()
     {
         return $this->hasMany(Booking::class);
-    }
-
-    public function division()
-    {
-        return $this->belongsTo(Division::class);
     }
 }

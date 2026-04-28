@@ -12,6 +12,7 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\DivisionController;
 
 // ── Email Verification Routes ─────────────────────────────────
 
@@ -34,7 +35,7 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
         $user->markEmailAsVerified();
         event(new Verified($user));
 
-        // ✅ Directly activate — hindi na dependent sa listener
+        // Directly activate
         $user->update(['is_active' => true]);
     }
 
@@ -107,7 +108,6 @@ Route::middleware(['auth', 'verified', 'role:ndrrmoc_admin'])->prefix('ndrrmoc')
 // ── NAB Admin Routes ──────────────────────────────────────────
 Route::middleware(['auth', 'verified', 'role:nab_admin'])->prefix('nab')->name('nab.')->group(function () {
     Route::get('/', fn() => redirect()->route('nab.bookings.index'))->name('dashboard');
-    Route::get('/', fn() => redirect()->route('nab.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
     Route::get('/bookings',                       [AdminBookingController::class, 'index'])->name('bookings.index');
@@ -149,4 +149,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin
     Route::patch('/users/{user}/activate',     [UserManagementController::class, 'activate'])->name('users.activate');
     Route::patch('/users/{user}/deactivate',   [UserManagementController::class, 'deactivate'])->name('users.deactivate');
     Route::delete('/users/{user}',             [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+    // Division management
+    Route::resource('divisions', DivisionController::class)->except(['show', 'create', 'edit', 'update']);
 });

@@ -16,6 +16,7 @@
 
         body {
             min-height: 100vh;
+            /* Eto yung bago para sa background image */
             background: url('{{ asset('bgimg.jpg') }}') no-repeat center center fixed;
             background-size: contain;
 
@@ -33,6 +34,7 @@
             box-shadow: 0 8px 32px rgba(0, 0, 0, .3);
             overflow: hidden;
             border-top: 6px solid var(--ocd-orange);
+            /* Eto yung Top Accent Line */
         }
 
         .register-header {
@@ -74,8 +76,7 @@
             cursor: not-allowed;
         }
 
-        .form-control:focus,
-        .form-select:focus {
+        .form-control:focus {
             border-color: var(--ocd-blue);
             box-shadow: 0 0 0 .2rem rgba(26, 60, 114, .2);
         }
@@ -89,6 +90,7 @@
             color: #555;
         }
 
+        /* Eye toggle */
         .password-wrapper {
             position: relative;
         }
@@ -117,6 +119,7 @@
             color: var(--ocd-blue);
         }
 
+        /* Password match & strength feedback */
         .password-feedback {
             font-size: .78rem;
             margin-top: .3rem;
@@ -145,6 +148,8 @@
         </div>
         <div class="register-body">
 
+
+
             @if ($errors->any())
                 <div class="alert alert-danger py-2 small">
                     <ul class="mb-0 ps-3">
@@ -161,52 +166,29 @@
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Full Name <span class="text-danger">*</span></label>
                     <input type="text" name="name" class="form-control @error('name') is-invalid @enderror"
-                        value="{{ old('name') }}" placeholder="First Name, M.I, Last Name" required>
+                        value="{{ old('name') }}" placeholder="First Name, Last Name" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
-                    <input type="email" name="email" id="emailInput"
-                        class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}"
-                        placeholder="@gmail.com" pattern=".*@gmail\.com$" title="Only @gmail.com emails are allowed."
-                        required oninput="validateForm()">
-                    <div id="emailFeedback" class="password-feedback" style="display: none;"></div>
+                    <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
+                        value="{{ old('email') }}" placeholder="@gmail.com" required>
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small">Division / Service <span
-                            class="text-danger">*</span></label>
-                    <select name="division_id" id="divisionSelect"
-                        class="form-select @error('division_id') is-invalid @enderror" required>
-                        <option value="" selected disabled>Select your Division</option>
-                        @if (isset($divisions))
-                            @foreach ($divisions as $division)
-                                <option value="{{ $division->id }}"
-                                    {{ old('division_id') == $division->id ? 'selected' : '' }}>
-                                    {{ $division->name }}
-                                </option>
-                            @endforeach
-                        @endif
-                        <option value="others" {{ old('division_id') == 'others' ? 'selected' : '' }}>Others (Please
-                            specify)</option>
-                    </select>
-                </div>
-
-                <div id="otherDivisionWrapper" class="mb-3"
-                    style="display: {{ old('division_id') == 'others' ? 'block' : 'none' }};">
-                    <label class="form-label fw-semibold small">Specify Division <span
-                            class="text-danger">*</span></label>
-                    <input type="text" id="otherDivisionInput" name="other_division"
-                        class="form-control @error('other_division') is-invalid @enderror"
-                        value="{{ old('other_division') }}" placeholder="Type your division here">
+                    <label class="form-label fw-semibold small">Department <span class="text-danger">*</span></label>
+                    <input type="text" name="department"
+                        class="form-control @error('department') is-invalid @enderror" value="{{ old('department') }}"
+                        placeholder="Ex: Operations" required>
                 </div>
 
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Contact Number</label>
-                    <input type="text" name="contact_number" class="form-control"
-                        value="{{ old('contact_number') }}" placeholder="09XXXXXXXXX">
+                    <input type="text" name="contact_number" class="form-control" value="{{ old('contact_number') }}"
+                        placeholder="09XXXXXXXXX">
                 </div>
 
+                {{-- PASSWORD --}}
                 <div class="mb-3">
                     <label class="form-label fw-semibold small">Password <span class="text-danger">*</span></label>
                     <div class="password-wrapper">
@@ -230,13 +212,13 @@
                     </ul>
                 </div>
 
+                {{-- CONFIRM PASSWORD --}}
                 <div class="mb-4">
                     <label class="form-label fw-semibold small">Confirm Password <span
                             class="text-danger">*</span></label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPassword" name="password_confirmation"
-                            class="form-control" placeholder="Re-enter your password" required
-                            oninput="validateForm()">
+                        <input type="password" id="confirmPassword" name="password_confirmation" class="form-control"
+                            placeholder="Re-enter your password" required oninput="validateForm()">
                         <button type="button" class="toggle-eye" onclick="toggleEye('confirmPassword', 'eyeIcon2')"
                             tabindex="-1" aria-label="Toggle confirm password visibility">
                             <i id="eyeIcon2" class="bi bi-eye"></i>
@@ -270,50 +252,22 @@
             }
         }
 
-        // Logic for the Division Dropdown to show/hide the "Others" text box
-        document.getElementById('divisionSelect').addEventListener('change', function() {
-            const otherWrapper = document.getElementById('otherDivisionWrapper');
-            const otherInput = document.getElementById('otherDivisionInput');
-            if (this.value === 'others') {
-                otherWrapper.style.display = 'block';
-                otherInput.setAttribute('required', 'required');
-            } else {
-                otherWrapper.style.display = 'none';
-                otherInput.removeAttribute('required');
-            }
-        });
-
         function validateForm() {
-            const email = document.getElementById('emailInput').value;
             const pw = document.getElementById('password').value;
             const cpw = document.getElementById('confirmPassword').value;
 
-            const emailFeedback = document.getElementById('emailFeedback');
             const matchFeedback = document.getElementById('passwordFeedback');
             const submitBtn = document.getElementById('submitBtn');
             const reqList = document.getElementById('password-requirements');
 
-            let isEmailValid = email.toLowerCase().endsWith('@gmail.com');
-
-            if (!isEmailValid && email.includes('@') && email.split('@')[1].length > 0) {
-                const domainTyped = email.toLowerCase().split('@')[1];
-                if (!"gmail.com".startsWith(domainTyped)) {
-                    emailFeedback.style.display = 'flex';
-                    emailFeedback.innerHTML = '<i class="bi bi-x-circle-fill"></i> Only @gmail.com emails are allowed';
-                    emailFeedback.className = 'password-feedback no-match';
-                } else {
-                    emailFeedback.style.display = 'none';
-                }
-            } else {
-                emailFeedback.style.display = 'none';
-            }
-
+            // 1. Show/Hide Checklist
             if (pw.length > 0) {
                 reqList.style.display = 'block';
             } else {
                 reqList.style.display = 'none';
             }
 
+            // 2. Check Password Conditions
             const hasLength = pw.length >= 8;
             const hasLetter = /[a-zA-Z]/.test(pw);
             const hasNumber = /\d/.test(pw);
@@ -337,6 +291,7 @@
 
             let isPasswordStrong = hasLength && hasLetter && hasNumber && hasSpecial;
 
+            // 3. Check Password Match
             let isPasswordMatch = false;
             if (cpw === '') {
                 matchFeedback.textContent = '';
@@ -350,15 +305,16 @@
                 matchFeedback.className = 'password-feedback no-match';
             }
 
-            if (isEmailValid && isPasswordStrong && isPasswordMatch) {
+            // 4. Enable/Disable Submit Button
+            if (isPasswordStrong && isPasswordMatch) {
                 submitBtn.disabled = false;
             } else {
                 submitBtn.disabled = true;
             }
         }
 
+        // Extra safety: block submit if conditions aren't met
         document.getElementById('registerForm').addEventListener('submit', function(e) {
-            const email = document.getElementById('emailInput').value;
             const pw = document.getElementById('password').value;
             const cpw = document.getElementById('confirmPassword').value;
 
@@ -368,9 +324,8 @@
             const hasSpecial = /[\W_]/.test(pw);
 
             const isPasswordStrong = hasLength && hasLetter && hasNumber && hasSpecial;
-            const isEmailValid = email.toLowerCase().endsWith('@gmail.com');
 
-            if (!isEmailValid || pw !== cpw || !isPasswordStrong) {
+            if (pw !== cpw || !isPasswordStrong) {
                 e.preventDefault();
                 validateForm();
             }

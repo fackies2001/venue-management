@@ -21,15 +21,12 @@
             --ocd-orange: #e87722;
             --ocd-dark: #0a1144;
             --ocd-light-bg: #f4f7f6;
-            /* Soft light gray para sa main content */
         }
 
         body {
             background: var(--ocd-light-bg);
-            /* Pinalitan na natin ng Light Background */
             font-family: 'Segoe UI', sans-serif;
             color: #333;
-            /* Dark text for light background */
             overflow-x: hidden;
         }
 
@@ -38,7 +35,6 @@
             width: 260px;
             min-height: 100vh;
             background: var(--ocd-dark);
-            /* Binalik natin sa Dark Blue */
             color: #fff;
             position: fixed;
             top: 0;
@@ -47,7 +43,6 @@
             display: flex;
             flex-direction: column;
             box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-            /* Shadow para umangat ang sidebar */
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
@@ -76,7 +71,6 @@
             font-size: 1.45rem;
             letter-spacing: 0.5px;
             margin-bottom: 0.5rem;
-            /* Binago: from 0.2rem ginawang 0.5rem para mas umaliwalas */
             color: #fff;
             line-height: 1.2;
         }
@@ -85,7 +79,6 @@
             font-size: 0.78rem;
             color: rgba(255, 255, 255, 0.6);
             margin-top: 0.2rem;
-            /* Dinagdag: para may konting breathing room sa taas */
         }
 
         /* Sidebar Navigation */
@@ -188,7 +181,6 @@
             border: none;
             border-radius: 12px;
             box-shadow: 0 4px 16px rgba(0, 0, 0, .06);
-            /* Lighter shadow for light background */
             border-top: 5px solid var(--ocd-orange);
             overflow: hidden;
         }
@@ -201,7 +193,7 @@
             padding: 1.15rem 1.25rem;
         }
 
-        /* Titles inside pages (like "Booking History") */
+        /* Titles */
         h1,
         h2,
         h3,
@@ -209,7 +201,6 @@
         h5,
         .page-title {
             color: var(--ocd-blue);
-            /* Ensure page titles match the theme */
         }
 
         /* Badges */
@@ -248,7 +239,7 @@
             box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
         }
 
-        /* Scrollbar styling for Dark Sidebar */
+        /* Scrollbar */
         .sidebar-nav::-webkit-scrollbar {
             width: 5px;
         }
@@ -317,12 +308,18 @@
                                 <i class="bi bi-people-fill"></i> User Management
                             </a>
                         </li>
+                        <li class="nav-item">
+                            <a href="{{ route('super-admin.divisions.index') }}"
+                                class="{{ request()->routeIs('super-admin.divisions*') ? 'active' : '' }}">
+                                <i class="bi bi-building"></i> Divisions & Services
+                            </a>
+                        </li>
                     @endif
                 </ul>
             @endauth
         </nav>
 
-        {{-- User info at bottom (Updated for Dark Theme) --}}
+        {{-- User info at bottom --}}
         @auth
             <div style="padding:1.25rem 1.5rem; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05);">
                 <div class="d-flex align-items-center gap-3 mb-3">
@@ -333,7 +330,8 @@
                     <div style="overflow: hidden;">
                         <div
                             style="font-weight:600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;">
-                            {{ auth()->user()->name }}</div>
+                            {{ auth()->user()->name }}
+                        </div>
                         <div style="color:rgba(255,255,255,0.6); font-size: 0.75rem; text-transform:capitalize;">
                             {{ str_replace('_', ' ', auth()->user()->role) }}
                         </div>
@@ -365,7 +363,7 @@
             @auth
                 <div class="d-flex align-items-center gap-4">
                     <span style="font-size:.85rem; font-weight: 500; color: rgba(255,255,255,0.95);">
-                        <i class="bi bi-person-badge me-1 fs-6"></i> {{ auth()->user()->department }}
+                        <i class="bi bi-person-badge me-1 fs-6"></i> {{ auth()->user()->division->name ?? 'No Division' }}
                     </span>
                     <form method="POST" action="{{ route('logout') }}" class="m-0">
                         @csrf
