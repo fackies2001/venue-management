@@ -75,7 +75,15 @@
                             <tr>
                                 <td class="text-muted small">{{ $booking->id }}</td>
                                 <td class="fw-semibold">{{ $booking->event_title }}</td>
-                                <td>{{ $booking->venue->name }}</td>
+
+                                {{-- ✅ FIXED: Added Room/Floor output with null-safe check --}}
+                                <td>
+                                    {{ $booking->venue->name ?? 'Deleted Venue' }}
+                                    @if ($booking->venue && $booking->venue->room_floor)
+                                        <span class="text-muted small">({{ $booking->venue->room_floor }})</span>
+                                    @endif
+                                </td>
+
                                 <td data-order="{{ $booking->event_date->format('Y-m-d') }}">
                                     {{ $booking->event_date->format('M d, Y') }}
                                 </td>
@@ -124,6 +132,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>

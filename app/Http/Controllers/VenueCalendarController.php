@@ -3,23 +3,23 @@
 namespace App\Http\Controllers;
 
 use App\Models\Booking;
-use App\Models\VenueEvent;
+use App\Models\Building;
 use App\Models\Venue;
+use App\Models\Division;
 use Illuminate\Http\Request;
 
 class VenueCalendarController extends Controller
 {
     public function index()
     {
+        $buildings = Building::with(['venues' => function ($query) {
+            $query->active();
+        }])->active()->get();
+
         $venues = Venue::active()->get();
+        $divisions = Division::all();
 
-        $buildings = Venue::active()
-            ->whereNotNull('building')
-            ->distinct()
-            ->orderBy('building')
-            ->pluck('building');
-
-        return view('user.calendar', compact('venues', 'buildings'));
+        return view('user.calendar', compact('venues', 'buildings', 'divisions'));
     }
 
     public function events(Request $request)
@@ -40,12 +40,15 @@ class VenueCalendarController extends Controller
             $startTime = substr($booking->start_time, 11, 8);
             $endTime   = substr($booking->end_time, 11, 8);
 
-
-            // Color from DB
             $color = $booking->venue?->color ?? '#6c757d';
-
             $startDisplay = date('h:i A', strtotime($booking->start_time));
             $endDisplay   = date('h:i A', strtotime($booking->end_time));
+
+            // ✅ FIXED: Append Room/Floor to the venue name in the modal!
+            $venueName = $booking->venue ? $booking->venue->name : '—';
+            if ($booking->venue && $booking->venue->room_floor) {
+                $venueName .= ' (' . $booking->venue->room_floor . ')';
+            }
 
             return [
                 'id'              => $booking->id,
@@ -56,7 +59,7 @@ class VenueCalendarController extends Controller
                 'borderColor'     => $color,
                 'display'         => 'block',
                 'extendedProps'   => [
-                    'venue'       => $booking->venue?->name ?? '—',
+                    'venue'       => $venueName,
                     'description' => $booking->agenda ?? $booking->remarks,
                     'booker'      => $booking->booker_name,
                     'time'        => $startDisplay . ' – ' . $endDisplay,

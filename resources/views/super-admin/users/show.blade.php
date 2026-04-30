@@ -78,18 +78,17 @@
     </div>
 
     @php
+        // UPDATED ROLES
         $roleColors = [
             \App\Models\User::ROLE_SUPER_ADMIN => 'danger',
-            \App\Models\User::ROLE_NDRRMOC => 'warning',
-            \App\Models\User::ROLE_NAB => 'info',
+            \App\Models\User::ROLE_ADMIN => 'warning',
             \App\Models\User::ROLE_USER => 'secondary',
         ];
         $color = $roleColors[$user->role] ?? 'secondary';
 
         $roleLabels = [
             \App\Models\User::ROLE_SUPER_ADMIN => 'Super Admin',
-            \App\Models\User::ROLE_NDRRMOC => 'NDRRMOC',
-            \App\Models\User::ROLE_NAB => 'NAB',
+            \App\Models\User::ROLE_ADMIN => 'Admin',
             \App\Models\User::ROLE_USER => 'User',
         ];
         $roleLabel = $roleLabels[$user->role] ?? strtoupper($user->role);
@@ -116,9 +115,11 @@
                             <span class="badge badge-rejected px-3 py-2">Inactive</span>
                         @endif
                     </div>
-                    @if ($user->department)
+
+                    {{-- UPDATED TO DIVISION --}}
+                    @if ($user->division)
                         <p class="text-muted small mb-3">
-                            <i class="bi bi-building me-1"></i>{{ $user->department }}
+                            <i class="bi bi-building me-1"></i>{{ $user->division->name }}
                         </p>
                     @endif
                 </div>
@@ -231,10 +232,13 @@
                             <span class="badge bg-{{ $color }}">{{ $roleLabel }}</span>
                         </div>
                     </div>
+
+                    {{-- UPDATED TO DIVISION --}}
                     <div class="info-row">
-                        <div class="info-label"><i class="bi bi-building"></i> Department</div>
-                        <div class="info-value">{{ $user->department ?? '—' }}</div>
+                        <div class="info-label"><i class="bi bi-building"></i> Division</div>
+                        <div class="info-value">{{ $user->division->name ?? '—' }}</div>
                     </div>
+
                     <div class="info-row">
                         <div class="info-label"><i class="bi bi-telephone"></i> Contact Number</div>
                         <div class="info-value">{{ $user->contact_number ?? '—' }}</div>

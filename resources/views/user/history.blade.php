@@ -60,12 +60,19 @@
                         </tr>
                     </thead>
                     <tbody>
-                        {{-- Binago dito: Ginawang regular foreach --}}
                         @foreach ($history as $booking)
                             <tr>
                                 <td class="text-muted small">{{ $booking->id }}</td>
                                 <td>{{ $booking->event_title }}</td>
-                                <td>{{ $booking->venue->name }}</td>
+
+                                {{-- ✅ FIXED: Idinagdag ang Room/Floor display at null-safe check --}}
+                                <td>
+                                    {{ $booking->venue->name ?? 'Deleted Venue' }}
+                                    @if ($booking->venue && $booking->venue->room_floor)
+                                        <span class="text-muted small">({{ $booking->venue->room_floor }})</span>
+                                    @endif
+                                </td>
+
                                 <td>{{ $booking->event_date->format('M d, Y') }}</td>
                                 <td>
                                     <span class="badge {{ $booking->statusBadgeClass() }} px-2 py-1">
@@ -85,6 +92,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
@@ -107,7 +115,6 @@
                         previous: "Previous",
                         next: "Next"
                     },
-                    // Dinagdag ito para DataTables na ang bahala mag-display kung walang records
                     emptyTable: "No history records found."
                 }
             });

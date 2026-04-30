@@ -15,8 +15,9 @@
         }
 
         .booking-form-header {
-            background: linear-gradient(135deg, var(--ocd-blue) 0%, #244e96 100%);
-            padding: 1.5rem 2rem;
+            background: #0a1144 !important;
+            /* Solid Dark Blue */
+            padding: 1.25rem 2rem;
             display: flex;
             align-items: center;
             gap: .85rem;
@@ -99,6 +100,12 @@
             border-color: #dc3545 !important;
         }
 
+        .form-text {
+            font-size: .75rem;
+            color: #9aa5b4;
+            margin-top: .3rem;
+        }
+
         .booking-form-footer {
             padding: 1.25rem 2rem;
             background: #f8f9fc;
@@ -177,16 +184,34 @@
             background: #f0f2f5;
             color: #1a3c72;
         }
+
+        @media (max-width: 600px) {
+            .booking-form-body {
+                padding: 1.25rem 1rem;
+            }
+
+            .booking-form-header {
+                padding: 1.1rem 1rem;
+            }
+
+            .booking-form-footer {
+                padding: 1rem;
+                flex-wrap: wrap;
+            }
+        }
     </style>
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 @endpush
 
 @section('content')
 
+    {{-- ✅ FIXED: Idinagdag ang 'admin' sa match statement para hindi mag 404 --}}
     @php
         $prefix = match (auth()->user()->role) {
+            'admin' => 'admin',
+            'super_admin' => 'super-admin',
             'ndrrmoc_admin' => 'ndrrmoc',
             'nab_admin' => 'nab',
-            'super_admin' => 'super-admin',
             default => 'user',
         };
     @endphp
@@ -238,27 +263,30 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Building <span class="text-danger">*</span></label>
+                            {{-- ✅ FIXED: Removed JSON Output --}}
                             <select id="buildingSelect" name="building"
                                 class="form-select @error('building') is-invalid @enderror" required>
-                                <option value="">— Select Building —</option>
+                                <option value="" data-id="">— Select Building —</option>
                                 @foreach ($buildings as $building)
-                                    <option value="{{ $building }}"
-                                        {{ old('building', $booking->venue->building ?? '') === $building ? 'selected' : '' }}>
-                                        {{ $building }}
+                                    <option value="{{ $building->name }}" data-id="{{ $building->id }}"
+                                        {{ old('building', $booking->venue->building->name ?? '') === $building->name ? 'selected' : '' }}>
+                                        {{ $building->name }}
                                     </option>
                                 @endforeach
                             </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Venue <span class="text-danger">*</span></label>
+                            {{-- ✅ FIXED: Data-building is now properly pointing to building_id --}}
                             <select id="venueSelect" name="venue_id"
                                 class="form-select @error('venue_id') is-invalid @enderror" required>
                                 <option value="">— Select Building First —</option>
                                 @foreach ($venues as $venue)
-                                    <option value="{{ $venue->id }}" data-building="{{ $venue->building }}"
+                                    <option value="{{ $venue->id }}" data-building="{{ $venue->building_id }}"
+                                        data-capacity="{{ $venue->capacity }}"
                                         {{ old('venue_id', $booking->venue_id) == $venue->id ? 'selected' : '' }}
-                                        {{ old('building', $booking->venue->building ?? '') !== $venue->building ? 'hidden' : '' }}>
-                                        {{ $venue->name }}
+                                        {{ old('building', $booking->venue->building_id ?? '') !== $venue->building_id ? 'hidden' : '' }}>
+                                        {{ $venue->name }} {{ $venue->room_floor ? '(' . $venue->room_floor . ')' : '' }}
                                     </option>
                                 @endforeach
                             </select>
@@ -303,10 +331,12 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Number of Participants <span class="text-danger">*</span></label>
-                            <input type="number" name="expected_attendees"
+                            <input type="number" id="participantsInput" name="expected_attendees"
                                 class="form-control @error('expected_attendees') is-invalid @enderror"
                                 value="{{ old('expected_attendees', $booking->expected_attendees) }}" min="1"
                                 required>
+                            <div id="capacityHelper" class="form-text text-primary fw-semibold"
+                                style="display:none; font-size: 0.7rem;"></div>
                         </div>
                     </div>
                 </div>
@@ -334,15 +364,24 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Division <span class="text-danger">*</span></label>
-                            <input type="text" name="division"
-                                class="form-control @error('division') is-invalid @enderror"
-                                value="{{ old('division', $booking->division) }}" required>
+                            <select name="division" class="form-select @error('division') is-invalid @enderror" required>
+                                <option value="" disabled>Select division</option>
+                                @if (isset($divisions))
+                                    @foreach ($divisions as $division)
+                                        <option value="{{ $division->name }}"
+                                            {{ old('division', $booking->division) == $division->name ? 'selected' : '' }}>
+                                            {{ $division->name }}
+                                        </option>
+                                    @endforeach
+                                @endif
+                            </select>
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Telephone / IP Phone No. <span class="text-danger">*</span></label>
-                            <input type="text" name="phone"
+                            <input type="text" id="phoneInput" name="phone"
                                 class="form-control @error('phone') is-invalid @enderror"
                                 value="{{ old('phone', $booking->phone) }}" required>
+                            <div class="form-text text-muted">Numbers only (0-9, +, -, spaces)</div>
                         </div>
                     </div>
                 </div>
@@ -351,12 +390,11 @@
                     <div class="form-section-title"><i class="bi bi-paperclip me-1"></i>Attachments & Remarks</div>
                     <div class="row g-3">
                         <div class="col-12">
-                            <label class="form-label">Attachment <span
+                            <label class="form-label">Notice of Meeting <span
                                     class="text-muted fw-normal">(Optional)</span></label>
 
-                            {{-- UPDATED ATTACHMENT SECTION FOR EDIT PAGE --}}
                             @if ($booking->attachment_path)
-                                <div class="mb-2 small d-flex align-items-center gap-2">
+                                <div class="mb-2 small d-flex align-items-center gap-2 p-2 border rounded bg-light">
                                     <span class="text-muted">Current file:</span>
                                     @php
                                         $fileUrl = asset(Storage::url($booking->attachment_path));
@@ -372,7 +410,8 @@
 
                             <input type="file" name="attachment_path"
                                 class="form-control @error('attachment_path') is-invalid @enderror"
-                                accept=".pdf,.docx,.jpg,.png">
+                                accept=".pdf,.docx,.jpg,.jpeg,.png">
+                            <div class="form-text">Upload a new file to replace the existing one. Max: 5MB.</div>
                         </div>
                         <div class="col-12">
                             <label class="form-label">Remarks <span class="text-muted fw-normal">(Optional)</span></label>
@@ -384,7 +423,7 @@
             </div>
 
             <div class="booking-form-footer">
-                <button type="submit" class="btn-submit">
+                <button type="submit" class="btn-submit" id="submitBtn">
                     <i class="bi bi-save"></i> Save Changes
                 </button>
                 <a href="{{ route($prefix . '.bookings.index') }}" class="btn-cancel-custom">
@@ -395,7 +434,7 @@
         </div>
     </form>
 
-    {{-- FILE PREVIEW MODAL (OPTION 1: 95vw / 95vh) --}}
+    {{-- FILE PREVIEW MODAL --}}
     <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
         <div class="modal-dialog modal-dialog-centered" style="max-width: 95vw;">
             <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none; height: 95vh;">
@@ -408,7 +447,6 @@
                 </div>
                 <div class="modal-body p-0 d-flex justify-content-center align-items-center" id="fileViewerBody"
                     style="background: #f8f9fa; overflow-y: auto;">
-                    {{-- JS Injected Content --}}
                 </div>
                 <div class="modal-footer" style="border-top:1px solid #f0f2f5; background:#fafbfc; padding: 0.5rem 1rem;">
                     <a href="#" id="downloadFileBtn" class="btn btn-sm btn-primary fw-semibold" download
@@ -424,15 +462,85 @@
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
+        // ✅ FIXED: Cascade Logic now uses dataset properly
         document.getElementById('buildingSelect').addEventListener('change', function() {
-            const building = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            const buildingId = selectedOption.getAttribute('data-id');
             const venueSelect = document.getElementById('venueSelect');
+
             venueSelect.value = '';
-            venueSelect.options[0].textContent = '— Select Venue —';
+            venueSelect.options[0].textContent = buildingId ? '— Select Venue —' : '— Select Building First —';
+
             Array.from(venueSelect.options).forEach(opt => {
                 if (!opt.value) return;
-                opt.hidden = building ? opt.dataset.building !== building : true;
+                opt.hidden = buildingId ? opt.dataset.building != buildingId : true;
+            });
+        });
+
+        // ✅ Capacity Logic
+        const participantsInput = document.getElementById('participantsInput');
+        const capacityHelper = document.getElementById('capacityHelper');
+
+        function updateCapacityHelper() {
+            const venueSelect = document.getElementById('venueSelect');
+            const selectedOption = venueSelect.options[venueSelect.selectedIndex];
+            const maxCapacity = selectedOption ? selectedOption.getAttribute('data-capacity') : null;
+
+            if (maxCapacity && maxCapacity > 0) {
+                participantsInput.setAttribute('max', maxCapacity);
+                capacityHelper.style.display = 'block';
+                capacityHelper.innerHTML = `<i class="bi bi-info-circle"></i> Max capacity: ${maxCapacity} pax`;
+            } else {
+                participantsInput.removeAttribute('max');
+                capacityHelper.style.display = 'none';
+            }
+        }
+
+        document.getElementById('venueSelect').addEventListener('change', updateCapacityHelper);
+        window.addEventListener('load', updateCapacityHelper);
+
+        // ✅ Phone Validation
+        const phoneInput = document.getElementById('phoneInput');
+        phoneInput.addEventListener('input', function() {
+            this.value = this.value.replace(/[^0-9\+\-\s\(\)]/g, '');
+        });
+
+        // ✅ Form Submit Confirmation
+        let confirmed = false;
+        const form = document.getElementById('bookingForm');
+        form.addEventListener('submit', function(e) {
+            if (confirmed) return;
+            e.preventDefault();
+
+            const maxCap = parseInt(participantsInput.getAttribute('max'));
+            const currentVal = parseInt(participantsInput.value);
+            if (maxCap && currentVal > maxCap) {
+                Swal.fire({
+                    icon: 'error',
+                    title: 'Capacity Exceeded',
+                    text: `This venue only holds up to ${maxCap} pax.`
+                });
+                return;
+            }
+
+            Swal.fire({
+                icon: 'question',
+                title: 'Save changes?',
+                text: 'Confirm that all updated details are correct.',
+                showCancelButton: true,
+                confirmButtonText: 'Yes, Save Changes',
+                confirmButtonColor: '#0a1144',
+                reverseButtons: true,
+            }).then(result => {
+                if (result.isConfirmed) {
+                    confirmed = true;
+                    const btn = document.getElementById('submitBtn');
+                    btn.disabled = true;
+                    btn.innerHTML = '<span class="spinner-border spinner-border-sm"></span> Saving…';
+                    form.submit();
+                }
             });
         });
 
@@ -440,11 +548,8 @@
         function openFileModal(fileUrl, fileExt) {
             const modalBody = document.getElementById('fileViewerBody');
             const downloadBtn = document.getElementById('downloadFileBtn');
-
-            // Set download button link
             downloadBtn.href = fileUrl;
 
-            // Loading state
             modalBody.innerHTML = `
                 <div class="text-center py-5">
                     <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
@@ -452,46 +557,33 @@
                 </div>`;
 
             let content = '';
-
-            // Image Preview
             if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
                 content =
                     `<img src="${fileUrl}" class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain; padding: 1rem;" alt="Attachment">`;
-            }
-            // PDF Preview
-            else if (fileExt === 'pdf') {
+            } else if (fileExt === 'pdf') {
                 content =
                     `<iframe src="${fileUrl}#toolbar=0" width="100%" height="100%" style="border: none; min-height: 75vh;"></iframe>`;
-            }
-            // Office Documents Preview (Word, Excel)
-            else if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExt)) {
+            } else if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExt)) {
                 const encodedUrl = encodeURIComponent(fileUrl);
                 content = `
                     <div class="w-100 h-100 d-flex flex-column">
                         <div class="alert alert-warning m-3 text-center small">
                             <i class="bi bi-exclamation-triangle-fill me-1"></i> 
-                            <strong>Note:</strong> Word/Excel preview requires a public internet connection. If it doesn't load on localhost, please use the download button below.
+                            <strong>Note:</strong> Word/Excel preview requires a public internet connection.
                         </div>
                         <iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}" width="100%" height="100%" style="border: none; flex-grow: 1;"></iframe>
                     </div>`;
-            }
-            // Fallback para sa hindi supported na files
-            else {
+            } else {
                 content = `
                     <div class="text-center py-5">
                         <i class="bi bi-file-earmark-x display-1 text-muted"></i>
                         <h5 class="mt-3">Preview Not Supported</h5>
                         <p class="text-muted">No preview available for .${fileExt} files.</p>
-                        <p class="small text-muted">Please download the file to view its contents.</p>
                     </div>`;
             }
 
-            // Inject content to modal
             modalBody.innerHTML = content;
-
-            // Show Modal
-            const previewModal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
-            previewModal.show();
+            new bootstrap.Modal(document.getElementById('filePreviewModal')).show();
         }
     </script>
 @endpush

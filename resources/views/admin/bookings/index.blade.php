@@ -11,6 +11,7 @@
 
     @php
         $prefix = match (auth()->user()->role) {
+            'admin' => 'admin', // ← ADD THIS LINE
             'ndrrmoc_admin' => 'ndrrmoc',
             'nab_admin' => 'nab',
             'super_admin' => 'super-admin',
@@ -42,8 +43,9 @@
                     <select name="venue_id" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">All Venues</option>
                         @foreach ($venues as $venue)
+                            {{-- ✅ FIXED: Idinagdag ang Room/Floor sa Dropdown --}}
                             <option value="{{ $venue->id }}" {{ request('venue_id') == $venue->id ? 'selected' : '' }}>
-                                {{ $venue->name }}
+                                {{ $venue->name }} {{ $venue->room_floor ? '(' . $venue->room_floor . ')' : '' }}
                             </option>
                         @endforeach
                     </select>
@@ -85,7 +87,15 @@
                                     </div>
                                 </td>
                                 <td>{{ $booking->event_title }}</td>
-                                <td>{{ $booking->venue->name }}</td>
+
+                                {{-- ✅ FIXED: Idinagdag ang Room/Floor display at null-safe check --}}
+                                <td>
+                                    {{ $booking->venue->name ?? 'Deleted Venue' }}
+                                    @if ($booking->venue && $booking->venue->room_floor)
+                                        <span class="text-muted small">({{ $booking->venue->room_floor }})</span>
+                                    @endif
+                                </td>
+
                                 <td data-order="{{ $booking->event_date->format('Y-m-d') }}">
                                     {{ $booking->event_date->format('M d, Y') }}
                                 </td>
@@ -186,6 +196,7 @@
 @endsection
 
 @push('scripts')
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
@@ -210,8 +221,8 @@
                         previous: "Previous",
                         next: "Next"
                     }
-                }, // ← comma dito
-                drawCallback: function() { // ← kasama pa rin sa loob
+                },
+                drawCallback: function() {
                     if (this.api().rows().count() === 0) {
                         $(this.api().table().node()).find('tbody tr td[colspan]')
                             .removeAttr('style');

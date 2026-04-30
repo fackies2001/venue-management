@@ -12,8 +12,7 @@ class User extends Authenticatable implements MustVerifyEmail
     use HasFactory, Notifiable;
 
     const ROLE_USER         = 'user';
-    const ROLE_NDRRMOC      = 'ndrrmoc_admin';
-    const ROLE_NAB          = 'nab_admin';
+    const ROLE_ADMIN        = 'admin';
     const ROLE_SUPER_ADMIN  = 'super_admin';
 
     protected $fillable = [
@@ -21,10 +20,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'email',
         'password',
         'role',
-        'division_id',
         'contact_number',
         'is_active',
-        'last_login_at',
+        'division_id',
     ];
 
     protected $hidden = [
@@ -36,33 +34,21 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
         'is_active'         => 'boolean',
-        'last_login_at'     => 'datetime',
     ];
 
     public function isUser(): bool
     {
         return $this->role === self::ROLE_USER;
     }
-    public function isNdrrmocAdmin(): bool
-    {
-        return $this->role === self::ROLE_NDRRMOC;
-    }
-    public function isNabAdmin(): bool
-    {
-        return $this->role === self::ROLE_NAB;
-    }
-    public function isSuperAdmin(): bool
-    {
-        return $this->role === self::ROLE_SUPER_ADMIN;
-    }
 
     public function isAdmin(): bool
     {
-        return in_array($this->role, [
-            self::ROLE_NDRRMOC,
-            self::ROLE_NAB,
-            self::ROLE_SUPER_ADMIN,
-        ]);
+        return $this->role === self::ROLE_ADMIN;
+    }
+
+    public function isSuperAdmin(): bool
+    {
+        return $this->role === self::ROLE_SUPER_ADMIN;
     }
 
     public function bookings()
@@ -70,8 +56,9 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->hasMany(Booking::class);
     }
 
+
     public function division()
     {
-        return $this->belongsTo(Division::class);
+        return $this->belongsTo(Division::class, 'division_id');
     }
 }

@@ -2,236 +2,250 @@
 
 namespace App\Http\Controllers;
 
+use App\Models\ActivityLog; // ✅ ADDED: Import the ActivityLog model
 use App\Models\Booking;
 use App\Models\Venue;
+use App\Models\Building;
+use App\Models\Division;
 use Illuminate\Http\Request;
-use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Facades\Mail;
-use Illuminate\Support\Facades\Storage; // Idinagdag para sa Delete/Update file
-use App\Mail\BookingCancelled;
+use Carbon\Carbon;
 
 class VenueBookingController extends Controller
 {
-    public function index()
+    /**
+     * Display a listing of the bookings (My Bookings / Manage Bookings).
+     */
+    public function index(Request $request)
     {
-        $bookings = Booking::with('venue')
-            ->where('user_id', Auth::id())
-            ->latest()
-            ->get();
+        $query = Booking::with(['venue', 'user', 'approvedBy']);
 
-        return view('user.bookings.index', compact('bookings'));
-    }
+        // Kung regular user, sarili niya lang na bookings ang makikita niya
+        $role = auth()->user()->role;
+        if (!in_array($role, ['admin', 'super_admin', 'ndrrmoc_admin', 'nab_admin'])) {
+            $query->where('user_id', auth()->id());
+        }
 
-    public function create()
-    {
+        // Apply Filters galing sa UI (Status)
+        if ($request->filled('status')) {
+            $query->where('status', $request->status);
+        }
+
+        // Apply Filters galing sa UI (Venue)
+        if ($request->filled('venue_id')) {
+            $query->where('venue_id', $request->venue_id);
+        }
+
+        $bookings = $query->orderBy('created_at', 'desc')->get();
         $venues = Venue::active()->get();
 
-        $buildings = Venue::active()
-            ->whereNotNull('building')
-            ->distinct()
-            ->orderBy('building')
-            ->pluck('building');
-
-        return view('user.bookings.create', compact('venues', 'buildings'));
+        return view('user.bookings.index', compact('bookings', 'venues'));
     }
 
-    public function store(Request $request)
+    /**
+     * View specific booking
+     */
+    public function show($id)
     {
-        $validated = $request->validate([
-            'venue_id'           => ['required', 'exists:venues,id'],
-            'event_title'        => ['required', 'string', 'max:255'],
-            'agenda'             => ['nullable', 'string', 'max:255'],
-            'event_date'         => ['required', 'date', 'after_or_equal:today'],
-            'start_time'         => ['required', 'date_format:H:i'],
-            'end_time'           => ['required', 'date_format:H:i', 'after:start_time'],
-            'expected_attendees' => ['required', 'integer', 'min:1'],
-            'purpose'            => ['nullable', 'string'],
-            'building'           => ['required', 'string'],
-            'booker_name'        => ['required', 'string', 'max:255'],
-            'service'            => ['required', 'string', 'max:255'],
-            'division'           => ['required', 'string', 'max:255'],
-            'email'              => ['required', 'email'],
-            'phone'              => ['required', 'string', 'max:255'],
-            'attachment_path' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
-            'remarks'            => ['nullable', 'string'],
-        ]);
-
-        // Handle file upload
-        if ($request->hasFile('attachment_path')) {
-            $validated['attachment_path'] = $request->file('attachment_path')
-                ->store('attachments', 'public');
-        }
-
-        // Check for conflicting approved bookings
-        $conflict = Booking::where('venue_id', $validated['venue_id'])
-            ->where('event_date', $validated['event_date'])
-            ->where('status', Booking::STATUS_APPROVED)
-            ->where(function ($q) use ($validated) {
-                $q->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
-                    ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']]);
-            })->exists();
-
-        if ($conflict) {
-            return back()
-                ->withErrors(['event_date' => 'The venue is already booked at that time.'])
-                ->withInput();
-        }
-
-        Booking::create(array_merge($validated, [
-            'user_id' => Auth::id(),
-            'status'  => Booking::STATUS_PENDING,
-        ]));
-
-        // Redirect based on role so all roles land on the right booking list
-        $route = match (auth()->user()->role) {
-            'ndrrmoc_admin' => 'ndrrmoc.bookings.index',
-            'nab_admin'     => 'nab.bookings.index',
-            'super_admin'   => 'super-admin.bookings.index',
-            default         => 'user.bookings.index',
-        };
-
-        return redirect()->route($route)
-            ->with('success', 'Booking request submitted successfully.');
-    }
-
-    public function show(Booking $booking)
-    {
-        // Manual check — dapat sa user na nag-book lang makakakita
-        if ($booking->user_id !== Auth::id()) {
-            abort(403);
-        }
-
+        $booking = Booking::with(['venue', 'user', 'approvedBy'])->findOrFail($id);
         return view('user.bookings.show', compact('booking'));
     }
 
-    // ✅ Dinagdag: Para ma-display yung Edit Form
-    public function edit(Booking $booking)
+    /**
+     * Show the form for creating a new booking.
+     */
+    public function create()
     {
-        if ($booking->user_id !== Auth::id() || !$booking->isPending()) {
-            abort(403, 'Only pending bookings can be edited.');
-        }
+        // Relational setup: Fetch active buildings with their active venues
+        $buildings = Building::with(['venues' => function ($query) {
+            $query->active();
+        }])->active()->get();
 
         $venues = Venue::active()->get();
-        $buildings = Venue::active()
-            ->whereNotNull('building')
-            ->distinct()
-            ->orderBy('building')
-            ->pluck('building');
+        $divisions = Division::all();
 
-        return view('user.bookings.edit', compact('booking', 'venues', 'buildings'));
+        return view('user.bookings.create', compact('buildings', 'venues', 'divisions'));
     }
 
-    // ✅ Dinagdag: Para i-save yung na-edit sa database
-    public function update(Request $request, Booking $booking)
+    /**
+     * Store a newly created booking in storage.
+     */
+    public function store(Request $request)
     {
-
-
-        if ($booking->user_id !== Auth::id() || !$booking->isPending()) {
-            abort(403, 'Only pending bookings can be edited.');
-        }
-
         $validated = $request->validate([
-            'venue_id'           => ['required', 'exists:venues,id'],
-            'event_title'        => ['required', 'string', 'max:255'],
-            'agenda'             => ['nullable', 'string', 'max:255'],
-            'event_date'         => ['required', 'date', 'after_or_equal:today'],
-            'start_time'         => ['required', 'date_format:H:i'],
-            'end_time'           => ['required', 'date_format:H:i', 'after:start_time'],
-            'expected_attendees' => ['required', 'integer', 'min:1'],
-            'building'           => ['required', 'string'],
-            'booker_name'        => ['required', 'string', 'max:255'],
-            'service'            => ['required', 'string', 'max:255'],
-            'division'           => ['required', 'string', 'max:255'],
-            'email'              => ['required', 'email'],
-            'phone'              => ['required', 'string', 'max:255'],
-            'attachment_path' => ['nullable', 'file', 'max:5120', 'mimes:pdf,doc,docx,jpg,jpeg,png'],
-            'remarks'            => ['nullable', 'string'],
+            'venue_id'           => 'required|exists:venues,id',
+            'event_title'        => 'required|string|max:255',
+            'agenda'             => 'nullable|string|max:255',
+            'event_date'         => 'required|date|after_or_equal:today',
+            'start_time'         => 'required',
+            'end_time'           => 'required|after:start_time',
+            'expected_attendees' => 'required|integer|min:1',
+            'booker_name'        => 'required|string|max:255',
+            'email'              => 'required|email|max:255',
+            'service'            => 'required|string|max:255',
+            'division'           => 'required|string|max:255',
+            'phone'              => 'required|string|max:20',
+            'attachment_path'    => 'nullable|file|mimes:pdf,docx,jpg,jpeg,png|max:5120',
+            'remarks'            => 'nullable|string',
         ]);
 
         if ($request->hasFile('attachment_path')) {
-            // Delete old file to save space
-            if ($booking->attachment_path) {
-                Storage::disk('public')->delete($booking->attachment_path);
-            }
-            $validated['attachment_path'] = $request->file('attachment_path')
-                ->store('attachments', 'public');
+            $file     = $request->file('attachment_path');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $validated['attachment_path'] = $file->storeAs('bookings/attachments', $filename, 'public');
         }
 
-        // Check conflict ulit, pero i-ignore yung ID ng current booking na ine-edit natin
-        $conflict = Booking::where('venue_id', $validated['venue_id'])
-            ->where('id', '!=', $booking->id)
-            ->where('event_date', $validated['event_date'])
-            ->where('status', Booking::STATUS_APPROVED)
-            ->where(function ($q) use ($validated) {
-                $q->whereBetween('start_time', [$validated['start_time'], $validated['end_time']])
-                    ->orWhereBetween('end_time', [$validated['start_time'], $validated['end_time']]);
-            })->exists();
+        $eventDate               = $validated['event_date'];
+        $validated['start_time'] = Carbon::parse("$eventDate {$validated['start_time']}")->format('Y-m-d H:i:s');
+        $validated['end_time']   = Carbon::parse("$eventDate {$validated['end_time']}")->format('Y-m-d H:i:s');
+        $validated['user_id']    = auth()->id();
+        $validated['status']     = Booking::STATUS_PENDING;
 
-        if ($conflict) {
-            return back()
-                ->withErrors(['event_date' => 'The venue is already booked at that time.'])
-                ->withInput();
+        $booking = Booking::create($validated);
+
+        // ── Log ──────────────────────────────────────────────
+        ActivityLog::record(
+            'created',
+            $booking,
+            auth()->user()->name . ' submitted new booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
+
+        $prefix = match (auth()->user()->role) {
+            'admin'       => 'admin',
+            'super_admin' => 'super-admin',
+            default       => 'user',
+        };
+
+        return redirect()->route("$prefix.calendar")
+            ->with('success', 'Booking submitted successfully and is pending approval.');
+    }
+
+    /**
+     * Show the form for editing the specified booking.
+     */
+    public function edit($id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin']) && !$booking->isPending()) {
+            return redirect()->back()->with('error', 'You can only edit pending bookings.');
         }
+
+        $buildings = Building::with(['venues' => function ($query) {
+            $query->active();
+        }])->active()->get();
+
+        $venues = Venue::active()->get();
+        $divisions = Division::all();
+
+        return view('user.bookings.edit', compact('booking', 'buildings', 'venues', 'divisions'));
+    }
+
+    /**
+     * Update the specified booking in storage.
+     */
+    public function update(Request $request, $id)
+    {
+        $booking = Booking::findOrFail($id);
+
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin']) && !$booking->isPending()) {
+            return redirect()->back()->with('error', 'You can only edit pending bookings.');
+        }
+
+        $validated = $request->validate([
+            'venue_id'           => 'required|exists:venues,id',
+            'event_title'        => 'required|string|max:255',
+            'agenda'             => 'nullable|string|max:255',
+            'event_date'         => 'required|date',
+            'start_time'         => 'required',
+            'end_time'           => 'required|after:start_time',
+            'expected_attendees' => 'required|integer|min:1',
+            'booker_name'        => 'required|string|max:255',
+            'email'              => 'required|email|max:255',
+            'service'            => 'required|string|max:255',
+            'division'           => 'required|string|max:255',
+            'phone'              => 'required|string|max:20',
+            'attachment_path'    => 'nullable|file|mimes:pdf,docx,jpg,jpeg,png|max:5120',
+            'remarks'            => 'nullable|string'
+        ]);
+
+        if ($request->hasFile('attachment_path')) {
+            $file     = $request->file('attachment_path');
+            $filename = time() . '_' . $file->getClientOriginalName();
+            $validated['attachment_path'] = $file->storeAs('bookings/attachments', $filename, 'public');
+        }
+
+        $eventDate               = $validated['event_date'];
+        $validated['start_time'] = Carbon::parse("$eventDate {$validated['start_time']}")->format('Y-m-d H:i:s');
+        $validated['end_time']   = Carbon::parse("$eventDate {$validated['end_time']}")->format('Y-m-d H:i:s');
 
         $booking->update($validated);
 
-        return redirect()->route('user.bookings.index')
-            ->with('success', 'Booking updated successfully.');
-    }
-
-    public function cancel(Request $request, Booking $booking)
-    {
-        $user = Auth::user();
-        $isAdmin = in_array($user->role, ['super_admin', 'ndrrmoc_admin', 'nab_admin']);
-
-        // User lang: sariling booking nila, at pending lang
-        if (!$isAdmin) {
-            if ($booking->user_id !== $user->id) {
-                abort(403);
-            }
-            if (!$booking->isPending()) {
-                return back()->with('error', 'Only pending bookings can be cancelled.');
-            }
-            $booking->update(['status' => Booking::STATUS_CANCELLED]);
-            return back()->with('success', 'Booking cancelled.');
-        }
-
-        // Admin: pwedeng i-cancel ang approved bookings, with reason
-        if (!$booking->isPending() && !$booking->isApproved()) {
-            return back()->with('error', 'Only pending or approved bookings can be cancelled.');
-        }
-
-        $request->validate([
-            'admin_remarks' => ['required', 'string'],
-        ]);
-
-        $booking->update([
-            'status'        => Booking::STATUS_CANCELLED,
-            'admin_remarks' => $request->admin_remarks,
-        ]);
-
-        // Send cancellation email
-        \Mail::to($booking->user->email)->send(
-            new \App\Mail\BookingCancelled($booking)
+        // ── Log ──────────────────────────────────────────────
+        // ✅ ADDED: Logging functionality so user edits don't go unnoticed!
+        ActivityLog::record(
+            'updated',
+            $booking,
+            auth()->user()->name . ' updated their pending booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
         );
 
-        return back()->with('success', 'Booking has been cancelled and the requester has been notified.');
+        $prefix = match (auth()->user()->role) {
+            'admin'       => 'admin',
+            'super_admin' => 'super-admin',
+            default       => 'user',
+        };
+
+        return redirect()->route("$prefix.bookings.index")->with('success', 'Booking updated successfully.');
     }
 
-    // ✅ Dinagdag: Para ma-delete nang tuluyan sa Database
-    public function destroy(Booking $booking)
+    /**
+     * Remove the specified booking from storage.
+     */
+    public function destroy($id)
     {
-        if ($booking->user_id !== Auth::id() || !$booking->isPending()) {
-            abort(403, 'Only pending bookings can be deleted.');
+        $booking = Booking::findOrFail($id);
+
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+            if ($booking->user_id !== auth()->id() || !$booking->isPending()) {
+                return redirect()->back()->with('error', 'Unauthorized action.');
+            }
         }
 
-        // Delete associated file
-        if ($booking->attachment_path) {
-            Storage::disk('public')->delete($booking->attachment_path);
+        // ── Log BEFORE delete ─────────────────────────────────
+        ActivityLog::record(
+            'deleted',
+            $booking,
+            auth()->user()->name . ' deleted booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
+
+        $booking->delete(); // Soft delete
+
+        return redirect()->back()->with('success', 'Booking deleted successfully.');
+    }
+
+    /**
+     * Cancel a booking without deleting it from the database.
+     */
+    public function cancel(Booking $booking)
+    {
+        if (!in_array(auth()->user()->role, ['admin', 'super_admin'])) {
+            if ($booking->user_id !== auth()->id()) {
+                return redirect()->back()->with('error', 'Unauthorized action.');
+            }
         }
 
-        $booking->delete();
+        $booking->update(['status' => Booking::STATUS_CANCELLED]);
 
-        return back()->with('success', 'Booking has been completely deleted.');
+        // ── Log ──────────────────────────────────────────────
+        ActivityLog::record(
+            'cancelled',
+            $booking,
+            auth()->user()->name . ' cancelled booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
+
+        return redirect()->back()->with('success', 'Booking has been cancelled.');
     }
 }

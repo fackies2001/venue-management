@@ -299,8 +299,7 @@
 
     @php
         $prefix = match (auth()->user()->role) {
-            'ndrrmoc_admin' => 'ndrrmoc',
-            'nab_admin' => 'nab',
+            'admin' => 'admin',
             'super_admin' => 'super-admin',
             default => 'user',
         };
@@ -336,7 +335,11 @@
                 <div class="detail-item">
                     <span class="di-label">Venue</span>
                     <span class="di-value">
-                        <i class="bi bi-geo-alt-fill"></i>{{ $booking->venue->name }}
+                        {{-- ✅ FIXED: Dinagdag ang Room/Floor dito! --}}
+                        <i class="bi bi-geo-alt-fill"></i>{{ $booking->venue->name ?? 'Deleted Venue' }}
+                        @if ($booking->venue && $booking->venue->room_floor)
+                            <span class="text-muted" style="font-size: .85rem;">({{ $booking->venue->room_floor }})</span>
+                        @endif
                     </span>
                 </div>
 

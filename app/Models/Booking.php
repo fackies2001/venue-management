@@ -4,10 +4,11 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\SoftDeletes;
 
 class Booking extends Model
 {
-    use HasFactory;
+    use HasFactory, SoftDeletes; // 
 
     const STATUS_PENDING   = 'pending';
     const STATUS_APPROVED  = 'approved';
@@ -32,7 +33,7 @@ class Booking extends Model
         'email',
         'phone',
         'attachment_path',
-        'remarks',         // ✅ DINAGDAG: Para ma-save sa database ang user remarks
+        'remarks',
         'status',
         'admin_remarks',
         'approved_by',
@@ -60,6 +61,11 @@ class Booking extends Model
     public function approvedBy()
     {
         return $this->belongsTo(User::class, 'approved_by');
+    }
+
+    public function venueEvent()
+    {
+        return $this->hasOne(VenueEvent::class);
     }
 
     // ── Scopes ────────────────────────────────────────────────
@@ -101,8 +107,17 @@ class Booking extends Model
         };
     }
 
-    public function venueEvent()
+    // ── Snapshot helper for activity log ─────────────────────
+
+    public function toSnapshot(): array
     {
-        return $this->hasOne(VenueEvent::class);
+        return [
+            'event_title' => $this->event_title,
+            'venue'       => $this->venue?->name,
+            'event_date'  => $this->event_date?->format('M d, Y'),
+            'booker_name' => $this->booker_name,
+            'division'    => $this->division,
+            'status'      => $this->status,
+        ];
     }
 }

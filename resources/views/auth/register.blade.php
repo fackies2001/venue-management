@@ -18,7 +18,6 @@
             min-height: 100vh;
             background: url('{{ asset('bgimg.jpg') }}') no-repeat center center fixed;
             background-size: contain;
-
             display: flex;
             align-items: center;
             justify-content: center;
@@ -78,15 +77,6 @@
         .form-select:focus {
             border-color: var(--ocd-blue);
             box-shadow: 0 0 0 .2rem rgba(26, 60, 114, .2);
-        }
-
-        .note {
-            background: #fff8e1;
-            border-left: 3px solid var(--ocd-orange);
-            padding: .75rem 1rem;
-            border-radius: 4px;
-            font-size: .82rem;
-            color: #555;
         }
 
         .password-wrapper {
@@ -187,18 +177,7 @@
                                 </option>
                             @endforeach
                         @endif
-                        <option value="others" {{ old('division_id') == 'others' ? 'selected' : '' }}>Others (Please
-                            specify)</option>
                     </select>
-                </div>
-
-                <div id="otherDivisionWrapper" class="mb-3"
-                    style="display: {{ old('division_id') == 'others' ? 'block' : 'none' }};">
-                    <label class="form-label fw-semibold small">Specify Division <span
-                            class="text-danger">*</span></label>
-                    <input type="text" id="otherDivisionInput" name="other_division"
-                        class="form-control @error('other_division') is-invalid @enderror"
-                        value="{{ old('other_division') }}" placeholder="Type your division here">
                 </div>
 
                 <div class="mb-3">
@@ -218,7 +197,6 @@
                             <i id="eyeIcon1" class="bi bi-eye"></i>
                         </button>
                     </div>
-
                     <ul id="password-requirements" class="list-unstyled mt-2 mb-0"
                         style="display: none; font-size: 0.78rem;">
                         <li id="req-length" class="text-danger"><i class="bi bi-x-circle"></i> Minimum of 8 characters
@@ -234,9 +212,8 @@
                     <label class="form-label fw-semibold small">Confirm Password <span
                             class="text-danger">*</span></label>
                     <div class="password-wrapper">
-                        <input type="password" id="confirmPassword" name="password_confirmation"
-                            class="form-control" placeholder="Re-enter your password" required
-                            oninput="validateForm()">
+                        <input type="password" id="confirmPassword" name="password_confirmation" class="form-control"
+                            placeholder="Re-enter your password" required oninput="validateForm()">
                         <button type="button" class="toggle-eye" onclick="toggleEye('confirmPassword', 'eyeIcon2')"
                             tabindex="-1" aria-label="Toggle confirm password visibility">
                             <i id="eyeIcon2" class="bi bi-eye"></i>
@@ -270,24 +247,10 @@
             }
         }
 
-        // Logic for the Division Dropdown to show/hide the "Others" text box
-        document.getElementById('divisionSelect').addEventListener('change', function() {
-            const otherWrapper = document.getElementById('otherDivisionWrapper');
-            const otherInput = document.getElementById('otherDivisionInput');
-            if (this.value === 'others') {
-                otherWrapper.style.display = 'block';
-                otherInput.setAttribute('required', 'required');
-            } else {
-                otherWrapper.style.display = 'none';
-                otherInput.removeAttribute('required');
-            }
-        });
-
         function validateForm() {
             const email = document.getElementById('emailInput').value;
             const pw = document.getElementById('password').value;
             const cpw = document.getElementById('confirmPassword').value;
-
             const emailFeedback = document.getElementById('emailFeedback');
             const matchFeedback = document.getElementById('passwordFeedback');
             const submitBtn = document.getElementById('submitBtn');
@@ -336,8 +299,8 @@
             updateReqUI('req-special', hasSpecial, 'At least 1 special character');
 
             let isPasswordStrong = hasLength && hasLetter && hasNumber && hasSpecial;
-
             let isPasswordMatch = false;
+
             if (cpw === '') {
                 matchFeedback.textContent = '';
                 matchFeedback.className = 'password-feedback';

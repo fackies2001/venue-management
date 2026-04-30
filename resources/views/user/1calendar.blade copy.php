@@ -5,18 +5,16 @@
 @push('styles')
 <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
-<!-- <style>
+<style>
     :root {
         --ocd-blue: #1a3c72;
         --ocd-orange: #e87722;
         --ocd-dark: #0a1144;
-        /* Added dark color to match sidebar */
     }
 
     .calendar-wrapper {
         display: flex;
         gap: 1.5rem;
-        /* Dinagdagan ng konting space para mas makahinga */
         align-items: flex-start;
     }
 
@@ -26,11 +24,10 @@
     }
 
     .form-panel {
-        width: 380px;
+        width: 580px;
         flex-shrink: 0;
     }
 
-    /* Inalis na natin yung background sa mismong #calendar kasi ibabalot natin sa card */
     #calendar {
         padding-top: 0.5rem;
     }
@@ -43,7 +40,6 @@
 
     .fc-button-primary {
         background: var(--ocd-dark) !important;
-        /* Ginawang dark blue ang buttons */
         border-color: var(--ocd-dark) !important;
         font-size: .8rem !important;
         padding: .35rem .75rem !important;
@@ -52,7 +48,6 @@
 
     .fc-button-primary:hover {
         background: var(--ocd-orange) !important;
-        /* Orange hover effect */
         border-color: var(--ocd-orange) !important;
     }
 
@@ -76,73 +71,68 @@
         padding: 1px 3px;
     }
 
-    /* Form panel */
     .form-panel .card {
         position: sticky;
-        top: 85px;
-        /* Inadjust para hindi dikit sa navbar */
+        top: 80px;
     }
 
     .form-panel .card-header {
         background: var(--ocd-dark) !important;
-        /* Katulad ng kulay sa sidebar */
         color: #fff !important;
         font-weight: 700;
         font-size: 1rem;
         border-radius: 12px 12px 0 0 !important;
-        padding: 1rem 1.25rem;
+        padding: .75rem 1.25rem;
     }
 
     .form-panel .card-body {
-        max-height: calc(100vh - 160px);
-        overflow-y: auto;
-        padding: 1.25rem;
-    }
-
-    .form-panel .card-body::-webkit-scrollbar {
-        width: 5px;
-    }
-
-    .form-panel .card-body::-webkit-scrollbar-thumb {
-        background: #ced4da;
-        border-radius: 10px;
+        padding: .9rem 1.1rem;
+        overflow: visible;
     }
 
     .form-panel .form-label {
-        font-size: .82rem;
-        margin-bottom: .25rem;
+        font-size: .76rem;
+        margin-bottom: .15rem;
         color: #495057;
+        font-weight: 600;
     }
 
     .form-panel .form-control,
     .form-panel .form-select {
         font-size: .85rem;
-        padding: .4rem .75rem;
+        padding: .35rem .7rem;
         border-radius: 6px;
         border: 1px solid #dee2e6;
+        height: 36px;
+    }
+
+    .form-panel textarea.form-control {
+        height: 100px;
+        resize: vertical;
     }
 
     .form-panel .form-control:focus,
     .form-panel .form-select:focus {
         border-color: var(--ocd-orange);
-        box-shadow: 0 0 0 0.2rem rgba(232, 119, 34, 0.15);
+        box-shadow: 0 0 0 0.15rem rgba(232, 119, 34, .15);
     }
 
     .form-panel .form-text {
-        font-size: .72rem;
+        font-size: .67rem;
+        line-height: 1.2;
     }
 
     .btn-submit {
         background: var(--ocd-orange);
         color: #fff;
         border: none;
-        font-size: .9rem;
+        font-size: .85rem;
         font-weight: 600;
         width: 100%;
-        padding: .65rem;
+        padding: .45rem;
         border-radius: 6px;
-        margin-top: 0.5rem;
-        transition: all 0.2s;
+        margin-top: .5rem;
+        transition: all .2s;
     }
 
     .btn-submit:hover {
@@ -150,16 +140,32 @@
         color: #fff;
     }
 
-    .time-row {
-        display: flex;
-        gap: .75rem;
+    .form-grid {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: .35rem .7rem;
     }
 
-    .time-row>div {
-        flex: 1;
+    .form-grid .col-full {
+        grid-column: 1 / -1;
     }
 
-    /* Event modal */
+    .form-grid .mb-2 {
+        margin-bottom: 0 !important;
+    }
+
+    .section-divider {
+        grid-column: 1 / -1;
+        font-size: .68rem;
+        font-weight: 700;
+        text-transform: uppercase;
+        letter-spacing: .06em;
+        color: var(--ocd-dark);
+        border-bottom: 1px solid #dee2e6;
+        padding-bottom: .15rem;
+        margin-top: .35rem;
+    }
+
     #eventModal .modal-dialog {
         max-width: 560px;
     }
@@ -176,16 +182,19 @@
     }
 
     #eventModal .modal-body table td {
-        font-size: .95rem;
+        font-size: 1.05rem;
         color: #333;
     }
 
-    /* SweetAlert custom */
+    #eventModal .modal-body table th {
+        font-size: 1rem;
+    }
+
     .swal2-confirm.swal-btn-blue {
         background-color: var(--ocd-dark) !important;
     }
 
-    @media (max-width: 1100px) {
+    @media (max-width: 1200px) {
         .calendar-wrapper {
             flex-direction: column;
         }
@@ -197,96 +206,108 @@
         .form-panel .card {
             position: static;
         }
+    }
 
-        .form-panel .card-body {
-            max-height: none;
+    @media (max-width: 576px) {
+        .form-grid {
+            grid-template-columns: 1fr;
+        }
+
+        .form-grid .col-full {
+            grid-column: 1;
+        }
+
+        .section-divider {
+            grid-column: 1;
         }
     }
 </style>
-@endpush -->
+@endpush
 
 @section('content')
 
-<!-- <div class="page-header mb-4">
+<div class="page-header mb-3">
     <h1 style="font-size:1.4rem; color: var(--ocd-dark);">
         <i class="bi bi-calendar3 me-2 text-muted"></i> Venue Calendar
-
     </h1>
-</div> -->
+</div>
 
-<!-- <div class="calendar-wrapper">
+<div class="calendar-wrapper">
 
-    {{-- ══ LEFT: Calendar (Nasa loob na ng Card para pumantay sa Form) ══ --}}
+    {{-- ══ LEFT: Calendar ══ --}}
     <div class="calendar-panel">
         <div class="card p-4">
 
             {{-- Filters --}}
             <div class="mb-3 d-flex gap-2 flex-wrap">
-                <select id="buildingFilter" class="form-select form-select-sm"
-                    style="max-width:200px; font-weight: 500;">
+                <select id="buildingFilter" class="form-select form-select-sm" style="max-width:200px; font-weight:500;">
                     <option value="">All Buildings</option>
                     @foreach ($buildings as $building)
-                    <option value="{{ $building }}">{{ $building }}</option>
+                    <option value="{{ $building->id }}">{{ $building->name }}</option>
                     @endforeach
                 </select>
 
-                <select id="venueFilter" class="form-select form-select-sm" style="max-width:220px; font-weight: 500;">
+                <select id="venueFilter" class="form-select form-select-sm" style="max-width:220px; font-weight:500;">
                     <option value="">All Venues</option>
                     @foreach ($venues as $venue)
-                    <option value="{{ $venue->id }}" data-building="{{ $venue->building }}">
-                        {{ $venue->name }}
+                    {{-- ✅ FIXED: Added Room/Floor to Filter Dropdown --}}
+                    <option value="{{ $venue->id }}" data-building="{{ $venue->building_id }}">
+                        {{ $venue->name }} {{ $venue->room_floor ? '(' . $venue->room_floor . ')' : '' }}
                     </option>
                     @endforeach
                 </select>
             </div>
 
-            {{-- Legend (Grouped by Building) --}}
-            <div class="mb-4 p-3 rounded" style="background: #f8f9fa; border: 1px solid #e9ecef;">
-                @php
-                // Pinaghiwa-hiwalay natin ang mga venues base sa Building nila
-                $groupedVenues = $venues->groupBy('building');
-                @endphp
-
+            {{-- Legend --}}
+            <div class="mb-3 p-3 rounded" style="background:#f8f9fa; border:1px solid #e9ecef;">
                 <div class="row">
-                    @foreach ($groupedVenues as $buildingName => $buildingVenues)
+                    @foreach ($buildings as $building)
                     <div class="col-md-6 mb-2 mb-md-0">
                         <div class="fw-bold mb-2" style="color:var(--ocd-dark); font-size:.85rem;">
-                            {{ $buildingName ?: 'Other Venues' }}
+                            {{ $building->name }}
                         </div>
                         <div class="d-flex flex-column gap-2 ps-1">
-                            @foreach ($buildingVenues as $venue)
+                            @foreach ($building->venues as $venue)
                             @php $color = $venue->color ?? '#6c757d'; @endphp
                             <span class="d-flex align-items-center gap-2"
-                                style="font-size:.8rem; color: #495057;">
+                                style="font-size:.8rem; color:#495057;">
                                 <span
                                     style="display:inline-block;width:14px;height:14px;border-radius:4px;background:{{ $color }};flex-shrink:0;"></span>
                                 {{ $venue->name }}
+
+                                {{-- ✅ FIXED: Display Room/Floor in the Legend --}}
+                                @if ($venue->room_floor)
+                                <span
+                                    style="font-size: 0.7rem; color: #888;">({{ $venue->room_floor }})</span>
+                                @endif
                             </span>
                             @endforeach
+                            @if ($building->venues->isEmpty())
+                            <span style="font-size:.8rem; color:#6c757d; font-style:italic;">No venues
+                                yet</span>
+                            @endif
                         </div>
                     </div>
                     @endforeach
                 </div>
             </div>
 
-            {{-- Calendar --}}
             <div id="calendar"></div>
         </div>
     </div>
 
-    {{-- ══ RIGHT: Venue Event Form ══ --}}
+    {{-- ══ RIGHT: Booking Form --}}
     <div class="form-panel">
         <div class="card">
             <div class="card-header">
-                Venue Event
+                <i class="bi bi-calendar-plus me-2"></i>Venue Event
             </div>
             <div class="card-body">
 
                 <form id="venueEventForm" method="POST"
                     action="{{ route(
                             match (auth()->user()->role) {
-                                'ndrrmoc_admin' => 'ndrrmoc.bookings.store',
-                                'nab_admin' => 'nab.bookings.store',
+                                'admin' => 'admin.bookings.store',
                                 'super_admin' => 'super-admin.bookings.store',
                                 default => 'user.bookings.store',
                             },
@@ -294,179 +315,186 @@
                     enctype="multipart/form-data">
                     @csrf
 
-                    {{-- Building --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Building <span class="text-danger">*</span></label>
-                        <select id="buildingSelect" name="building"
-                            class="form-select @error('building') is-invalid @enderror" required>
-                            <option value="">-- Select Building --</option>
-                            @foreach ($buildings as $building)
-                            <option value="{{ $building }}"
-                                {{ old('building') === $building ? 'selected' : '' }}>
-                                {{ $building }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
+                    <div class="form-grid">
 
-                    {{-- Venue --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Venue <span class="text-danger">*</span></label>
-                        <select id="venueSelect" name="venue_id"
-                            class="form-select @error('venue_id') is-invalid @enderror" required>
-                            <option value="">-- Select Building First --</option>
-                            @foreach ($venues as $venue)
-                            <option value="{{ $venue->id }}" data-building="{{ $venue->building }}"
-                                {{ old('venue_id') == $venue->id ? 'selected' : '' }} hidden>
-                                {{ $venue->name }}
-                            </option>
-                            @endforeach
-                        </select>
-                    </div>
+                        <div class="section-divider">Venue Details</div>
 
-                    {{-- Subject --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Subject <span class="text-danger">*</span></label>
-                        <input type="text" name="event_title"
-                            class="form-control @error('event_title') is-invalid @enderror"
-                            value="{{ old('event_title') }}" placeholder="Enter name of event" required>
-                    </div>
-
-                    {{-- Agenda --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Agenda / Topic</label>
-                        <input type="text" name="agenda" class="form-control @error('agenda') is-invalid @enderror"
-                            value="{{ old('agenda') }}" placeholder="Enter Agenda/Topic">
-                    </div>
-
-                    {{-- Date --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Reservation Start Date <span
-                                class="text-danger">*</span></label>
-                        <input type="date" name="event_date"
-                            class="form-control @error('event_date') is-invalid @enderror"
-                            value="{{ old('event_date') }}" min="{{ date('Y-m-d') }}" required>
-                    </div>
-
-                    {{-- Time --}}
-                    <div class="mb-3 time-row">
-                        <div>
-                            <label class="form-label fw-semibold">Start Time <span class="text-danger">*</span></label>
-                            <select name="start_time" class="form-select @error('start_time') is-invalid @enderror"
-                                required>
-                                <option value="">-- --</option>
-                                @foreach (generateTimeOptions() as $time)
-                                <option value="{{ $time['value'] }}"
-                                    {{ old('start_time') === $time['value'] ? 'selected' : '' }}>
-                                    {{ $time['label'] }}
+                        {{-- Building --}}
+                        <div class="mb-2">
+                            <label class="form-label">Building <span class="text-danger">*</span></label>
+                            <select id="buildingSelect" name="building"
+                                class="form-select @error('building') is-invalid @enderror" required>
+                                <option value="" data-id="">-- Select Building --</option>
+                                @foreach ($buildings as $building)
+                                <option value="{{ $building->name }}" data-id="{{ $building->id }}"
+                                    {{ old('building') === $building->name ? 'selected' : '' }}>
+                                    {{ $building->name }}
                                 </option>
                                 @endforeach
                             </select>
                         </div>
-                        <div>
-                            <label class="form-label fw-semibold">End Time <span class="text-danger">*</span></label>
-                            <select name="end_time" class="form-select @error('end_time') is-invalid @enderror"
-                                required>
-                                <option value="">-- --</option>
-                                @foreach (generateTimeOptions() as $time)
-                                <option value="{{ $time['value'] }}"
-                                    {{ old('end_time') === $time['value'] ? 'selected' : '' }}>
-                                    {{ $time['label'] }}
+
+                        {{-- Venue --}}
+                        <div class="mb-2">
+                            <label class="form-label">Venue <span class="text-danger">*</span></label>
+                            <select id="venueSelect" name="venue_id"
+                                class="form-select @error('venue_id') is-invalid @enderror" required>
+                                <option value="">-- Select Building First --</option>
+                                @foreach ($venues as $venue)
+                                {{-- ✅ FIXED: Added Room/Floor to Form Dropdown --}}
+                                <option value="{{ $venue->id }}" data-building="{{ $venue->building_id }}"
+                                    data-capacity="{{ $venue->capacity }}"
+                                    {{ old('venue_id') == $venue->id ? 'selected' : '' }} hidden>
+                                    {{ $venue->name }} {{ $venue->room_floor ? '- ' . $venue->room_floor : '' }}
                                 </option>
                                 @endforeach
                             </select>
                         </div>
-                    </div>
 
-                    {{-- Name --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Name <span class="text-danger">*</span></label>
-                        <input type="text" name="booker_name"
-                            class="form-control @error('booker_name') is-invalid @enderror"
-                            value="{{ old('booker_name', auth()->user()->name) }}" placeholder="Enter your name"
-                            required>
-                    </div>
+                        <div class="mb-2 col-full">
+                            <label class="form-label">Subject <span class="text-danger">*</span></label>
+                            <input type="text" name="event_title"
+                                class="form-control @error('event_title') is-invalid @enderror"
+                                value="{{ old('event_title') }}" placeholder="Enter name of event" required>
+                        </div>
 
-                    {{-- Service --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Service <span class="text-danger">*</span></label>
-                        <input type="text" name="service"
-                            class="form-control @error('service') is-invalid @enderror" value="{{ old('service') }}"
-                            placeholder="Enter service" required>
-                    </div>
+                        <div class="mb-2 col-full">
+                            <label class="form-label">Agenda / Topic</label>
+                            <input type="text" name="agenda"
+                                class="form-control @error('agenda') is-invalid @enderror" value="{{ old('agenda') }}"
+                                placeholder="Enter Agenda/Topic">
+                        </div>
 
-                    {{-- Division --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Division <span class="text-danger">*</span></label>
-                        <input type="text" name="division"
-                            class="form-control @error('division') is-invalid @enderror"
-                            value="{{ old('division') }}" placeholder="Enter division" required>
-                    </div>
+                        <div class="mb-2">
+                            <label class="form-label">Reservation Date <span class="text-danger">*</span></label>
+                            <input type="date" name="event_date"
+                                class="form-control @error('event_date') is-invalid @enderror"
+                                value="{{ old('event_date') }}" min="{{ date('Y-m-d') }}" required>
+                        </div>
 
-                    {{-- Email --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Email Address <span class="text-danger">*</span></label>
-                        <input type="email" name="email"
-                            class="form-control @error('email') is-invalid @enderror"
-                            value="{{ old('email', auth()->user()->email) }}" placeholder="Enter Email Address"
-                            required>
-                    </div>
+                        <div class="mb-2">
+                            <label class="form-label">Time (Start – End) <span class="text-danger">*</span></label>
+                            <div class="d-flex gap-1">
+                                <select name="start_time" class="form-select @error('start_time') is-invalid @enderror"
+                                    required>
+                                    <option value="">Start</option>
+                                    @foreach (generateTimeOptions() as $time)
+                                    <option value="{{ $time['value'] }}"
+                                        {{ old('start_time') === $time['value'] ? 'selected' : '' }}>
+                                        {{ $time['label'] }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                                <select name="end_time" class="form-select @error('end_time') is-invalid @enderror"
+                                    required>
+                                    <option value="">End</option>
+                                    @foreach (generateTimeOptions() as $time)
+                                    <option value="{{ $time['value'] }}"
+                                        {{ old('end_time') === $time['value'] ? 'selected' : '' }}>
+                                        {{ $time['label'] }}
+                                    </option>
+                                    @endforeach
+                                </select>
+                            </div>
+                        </div>
 
-                    {{-- Phone --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Telephone No. / IP Phone No. <span
-                                class="text-danger">*</span></label>
-                        <input type="text" id="phoneInput" name="phone"
-                            class="form-control @error('phone') is-invalid @enderror" value="{{ old('phone') }}"
-                            placeholder="Enter Phone Number" inputmode="numeric" pattern="[0-9\+\-\s\(\)]+"
-                            title="Phone number must contain numbers only" required>
-                        <div class="form-text text-muted">Numbers only (0-9, +, -, spaces allowed)</div>
-                    </div>
+                        <div class="section-divider">Requester Information</div>
 
-                    {{-- Participants --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Number of Participants <span
-                                class="text-danger">*</span></label>
-                        <input type="number" name="expected_attendees"
-                            class="form-control @error('expected_attendees') is-invalid @enderror"
-                            value="{{ old('expected_attendees') }}" min="1"
-                            placeholder="Enter number of participants" required>
-                    </div>
+                        <div class="mb-2">
+                            <label class="form-label">Name <span class="text-danger">*</span></label>
+                            <input type="text" name="booker_name"
+                                class="form-control @error('booker_name') is-invalid @enderror"
+                                value="{{ old('booker_name', auth()->user()->name) }}" placeholder="Enter your name"
+                                required>
+                        </div>
 
-                    {{-- Attachment --}}
-                    <div class="mb-3">
-                        <label class="form-label fw-semibold">Attachment (Optional)</label>
-                        <input type="file" name="attachment_path"
-                            class="form-control @error('attachment_path') is-invalid @enderror"
-                            accept=".pdf,.docx,.jpg,.png">
-                        <div class="form-text">Max 5MB · PDF, DOCX, JPG, PNG</div>
-                    </div>
+                        <div class="mb-2">
+                            <label class="form-label">Email Address <span class="text-danger">*</span></label>
+                            <input type="email" name="email"
+                                class="form-control @error('email') is-invalid @enderror"
+                                value="{{ old('email', auth()->user()->email) }}" placeholder="Enter email" required>
+                        </div>
 
-                    {{-- Remarks --}}
-                    <div class="mb-4">
-                        <label class="form-label fw-semibold">Remarks</label>
-                        <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" rows="2"
-                            placeholder="Enter remarks">{{ old('remarks') }}</textarea>
+                        <div class="mb-2">
+                            <label class="form-label">Service <span class="text-danger">*</span></label>
+                            <input type="text" name="service"
+                                class="form-control @error('service') is-invalid @enderror"
+                                value="{{ old('service') }}" placeholder="Enter service" required>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Division <span class="text-danger">*</span></label>
+                            <select name="division" class="form-select @error('division') is-invalid @enderror"
+                                required>
+                                <option value="" selected disabled>Select division</option>
+                                @if (isset($divisions))
+                                @foreach ($divisions as $division)
+                                <option value="{{ $division->name }}"
+                                    {{ old('division', auth()->user()->division->name ?? '') == $division->name ? 'selected' : '' }}>
+                                    {{ $division->name }}
+                                </option>
+                                @endforeach
+                                @endif
+                            </select>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Tel. / IP Phone No. <span class="text-danger">*</span></label>
+                            <input type="text" id="phoneInput" name="phone"
+                                class="form-control @error('phone') is-invalid @enderror"
+                                value="{{ old('phone') }}" placeholder="Enter phone number" inputmode="numeric"
+                                pattern="[0-9\+\-\s\(\)]+" title="Numbers only" required>
+                            <div class="form-text text-muted">Numbers only (0-9, +, -, spaces)</div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">No. of Participants <span class="text-danger">*</span></label>
+                            <input type="number" id="participantsInput" name="expected_attendees"
+                                class="form-control @error('expected_attendees') is-invalid @enderror"
+                                value="{{ old('expected_attendees') }}" min="1" placeholder="Enter number"
+                                required>
+                            <div id="capacityHelper" class="form-text text-primary fw-semibold"
+                                style="display:none; font-size: 0.7rem; margin-top: 2px;"></div>
+                        </div>
+
+                        <div class="section-divider">Additional</div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Notice of Meeting <span
+                                    class="text-muted fw-normal"></span></label>
+                            <input type="file" name="attachment_path"
+                                class="form-control @error('attachment_path') is-invalid @enderror"
+                                accept=".pdf,.docx,.jpg,.png"
+                                style="height:auto; padding:.2rem .5rem; font-size:.75rem;">
+                            <div class="form-text">Max 5MB · PDF, DOCX, JPG, PNG</div>
+                        </div>
+
+                        <div class="mb-2">
+                            <label class="form-label">Remarks</label>
+                            <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Enter remarks">{{ old('remarks') }}</textarea>
+                        </div>
+
                     </div>
 
                     <button type="submit" class="btn btn-submit" id="submitBtn">
                         <i class="bi bi-send-fill me-2"></i> Submit Booking
                     </button>
+
                 </form>
             </div>
         </div>
     </div>
 
-</div> -->
+</div>
 
-<!-- {{-- ══ Event Detail Modal ══ --}}
+{{-- Event Detail Modal --}}
 <div class="modal fade" id="eventModal" tabindex="-1">
     <div class="modal-dialog modal-lg modal-dialog-centered">
         <div class="modal-content border-0 shadow">
             <div class="modal-header">
                 <h5 class="modal-title text-white">
-                    <i class="bi bi-calendar-event me-2" style="color: var(--ocd-orange);"></i><span
-                        id="modalTitle"></span>
+                    <i class="bi bi-calendar-event me-2" style="color: var(--ocd-orange);"></i>
+                    <span id="modalTitle"></span>
                 </h5>
                 <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
             </div>
@@ -496,20 +524,20 @@
             </div>
         </div>
     </div>
-</div> -->
+</div>
 
 @endsection
 
 @push('scripts')
 <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+<script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
-<!-- <script>
+<script>
     document.addEventListener('DOMContentLoaded', function() {
 
         @php
         $prefix = match(auth() - > user() - > role) {
-            'ndrrmoc_admin' => 'ndrrmoc',
-            'nab_admin' => 'nab',
+            'admin' => 'admin',
             'super_admin' => 'super-admin',
             default => 'user',
         };
@@ -518,166 +546,200 @@
         const eventsUrl = "{{ route($prefix . '.calendar.events') }}";
         const modal = new bootstrap.Modal(document.getElementById('eventModal'));
 
-        // ── SweetAlert defaults ───────────────────────────────────────────────
         const swalOcd = Swal.mixin({
             confirmButtonColor: '#0a1144',
             cancelButtonColor: '#6c757d',
             buttonsStyling: true,
         });
 
-        // ── FullCalendar ──────────────────────────────────────────────────────
-        const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-            initialView: 'dayGridMonth',
-            height: 'auto',
-            headerToolbar: {
-                left: 'prev,next today',
-                center: 'title',
-                right: 'dayGridMonth,timeGridWeek,timeGridDay',
-            },
-            eventDisplay: 'block',
+        const calendarEl = document.getElementById('calendar');
+        if (calendarEl) {
+            const calendar = new FullCalendar.Calendar(calendarEl, {
+                initialView: 'dayGridMonth',
+                height: 'auto',
+                headerToolbar: {
+                    left: 'prev,next today',
+                    center: 'title',
+                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                },
+                eventDisplay: 'block',
 
-            // ✅ Title only — no time prefix
-            eventContent: function(arg) {
-                return {
-                    html: `<div style="padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.75rem;font-weight:600;letter-spacing:0.3px;">${arg.event.title}</div>`
-                };
-            },
+                eventContent: function(arg) {
+                    return {
+                        html: `<div style="padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.88rem;font-weight:600;">${arg.event.title}</div>`
+                    };
+                },
 
-            // ✅ Fetch events
-            events: function(info, successCb, failureCb) {
-                const venueId = document.getElementById('venueFilter').value;
-                fetch(`${eventsUrl}?start=${info.startStr}&end=${info.endStr}&venue_id=${venueId}`)
-                    .then(r => r.json())
-                    .then(successCb)
-                    .catch(failureCb);
-            },
+                events: function(info, successCb, failureCb) {
+                    const venueId = document.getElementById('venueFilter').value;
+                    fetch(
+                            `${eventsUrl}?start=${info.startStr}&end=${info.endStr}&venue_id=${venueId}`
+                        )
+                        .then(r => r.json())
+                        .then(successCb)
+                        .catch(failureCb);
+                },
 
-            // ✅ Click event → show modal
-            eventClick: function(info) {
-                const e = info.event;
+                eventClick: function(info) {
+                    const e = info.event;
+                    const fmt = d => d ? d.toLocaleDateString('en-PH', {
+                        year: 'numeric',
+                        month: 'long',
+                        day: 'numeric'
+                    }) : '—';
+                    document.getElementById('modalTitle').textContent = e.title;
+                    document.getElementById('modalVenue').textContent = e.extendedProps.venue ||
+                        '—';
+                    document.getElementById('modalDate').textContent = fmt(e.start);
+                    document.getElementById('modalTime').textContent = e.extendedProps.time || '—';
+                    document.getElementById('modalBooker').textContent = e.extendedProps.booker ||
+                        '—';
+                    document.getElementById('modalDesc').textContent = e.extendedProps
+                        .description || '—';
+                    modal.show();
+                },
 
-                const fmt = d => d ? d.toLocaleDateString('en-PH', {
-                    year: 'numeric',
-                    month: 'long',
-                    day: 'numeric'
-                }) : '—';
-
-                document.getElementById('modalTitle').textContent = e.title;
-                document.getElementById('modalVenue').textContent = e.extendedProps.venue || '—';
-                document.getElementById('modalDate').textContent = fmt(e.start);
-                document.getElementById('modalTime').textContent = e.extendedProps.time || '—';
-                document.getElementById('modalBooker').textContent = e.extendedProps.booker || '—';
-                document.getElementById('modalDesc').textContent = e.extendedProps.description ||
-                    '—';
-
-                modal.show();
-            },
-
-            // ✅ Click date → auto-fill date input in form
-            dateClick: function(info) {
-                const dateInput = document.querySelector('[name="event_date"]');
-                if (dateInput) dateInput.value = info.dateStr;
-
-                // Optional: Scroll to form on mobile when date is clicked
-                if (window.innerWidth <= 1100) {
-                    document.querySelector('.form-panel').scrollIntoView({
-                        behavior: 'smooth'
-                    });
-                }
-            },
-        });
-
-        calendar.render();
-
-        // ── Venue filter ──────────────────────────────────────────────────────
-        document.getElementById('venueFilter').addEventListener('change', () => calendar.refetchEvents());
-
-        // ── Building filter ───────────────────────────────────────────────────
-        document.getElementById('buildingFilter').addEventListener('change', function() {
-            const building = this.value;
-            const venueSelect = document.getElementById('venueFilter');
-            venueSelect.value = '';
-            Array.from(venueSelect.options).forEach(opt => {
-                if (!opt.value) return;
-                opt.hidden = building ? opt.dataset.building !== building : false;
+                dateClick: function(info) {
+                    const dateInput = document.querySelector('[name="event_date"]');
+                    if (dateInput) dateInput.value = info.dateStr;
+                    if (window.innerWidth <= 1200) {
+                        document.querySelector('.form-panel').scrollIntoView({
+                            behavior: 'smooth'
+                        });
+                    }
+                },
             });
-            calendar.refetchEvents();
-        });
 
-        // ── Form: building → venue cascade ────────────────────────────────────
+            calendar.render();
+
+            document.getElementById('venueFilter').addEventListener('change', () => calendar.refetchEvents());
+
+            document.getElementById('buildingFilter').addEventListener('change', function() {
+                const buildingId = this.value;
+                const venueSelect = document.getElementById('venueFilter');
+                venueSelect.value = '';
+                Array.from(venueSelect.options).forEach(opt => {
+                    if (!opt.value) return;
+                    opt.hidden = buildingId ? opt.dataset.building !== buildingId : false;
+                });
+                calendar.refetchEvents();
+            });
+        }
+
         document.getElementById('buildingSelect').addEventListener('change', function() {
-            const building = this.value;
+            const selectedOption = this.options[this.selectedIndex];
+            const buildingId = selectedOption.getAttribute('data-id');
+
             const venueSelect = document.getElementById('venueSelect');
             venueSelect.value = '';
-            venueSelect.options[0].textContent = building ? '-- Select Venue --' :
+            venueSelect.options[0].textContent = buildingId ? '-- Select Venue --' :
                 '-- Select Building First --';
+
             Array.from(venueSelect.options).forEach(opt => {
                 if (!opt.value) return;
-                opt.hidden = building ? opt.dataset.building !== building : true;
+                opt.hidden = buildingId ? opt.dataset.building !== buildingId : true;
             });
+
+            venueSelect.dispatchEvent(new Event('change'));
         });
 
-        // ── Restore cascade on validation error ───────────────────────────────
+        const participantsInput = document.getElementById('participantsInput');
+        const capacityHelper = document.getElementById('capacityHelper');
+
+        document.getElementById('venueSelect').addEventListener('change', function() {
+            const selectedOption = this.options[this.selectedIndex];
+            const maxCapacity = selectedOption.getAttribute('data-capacity');
+
+            if (maxCapacity && maxCapacity > 0) {
+                participantsInput.setAttribute('max', maxCapacity);
+                capacityHelper.style.display = 'block';
+                capacityHelper.innerHTML =
+                    `<i class="bi bi-info-circle"></i> Max capacity: ${maxCapacity} pax`;
+
+                if (parseInt(participantsInput.value) > maxCapacity) {
+                    participantsInput.value = maxCapacity;
+                }
+            } else {
+                participantsInput.removeAttribute('max');
+                capacityHelper.style.display = 'none';
+            }
+        });
+
         @if(old('building'))
         const savedBuilding = "{{ old('building') }}";
         const bs = document.getElementById('buildingSelect');
         bs.value = savedBuilding;
         bs.dispatchEvent(new Event('change'));
         @if(old('venue_id'))
-        document.getElementById('venueSelect').value = "{{ old('venue_id') }}";
+        setTimeout(() => {
+            const vs = document.getElementById('venueSelect');
+            vs.value = "{{ old('venue_id') }}";
+            vs.dispatchEvent(new Event('change'));
+        }, 50);
         @endif
         @endif
 
-        // ── Phone: block non-numeric ──────────────────────────────────────────
         const phoneInput = document.getElementById('phoneInput');
-        phoneInput.addEventListener('input', function() {
-            this.value = this.value.replace(/[^0-9\+\-\s\(\)]/g, '');
-        });
-        phoneInput.addEventListener('keypress', function(e) {
-            if (!/[0-9\+\-\s\(\)]/.test(e.key)) e.preventDefault();
-        });
-
-        // ── Form submit: SweetAlert confirm ───────────────────────────────────
-        let confirmed = false;
-
-        document.getElementById('venueEventForm').addEventListener('submit', function(e) {
-            if (confirmed) return;
-            e.preventDefault();
-
-            // Phone validation
-            const phone = phoneInput.value.trim();
-            if (!phone || !/^[0-9\+\-\s\(\)]+$/.test(phone)) {
-                swalOcd.fire({
-                    icon: 'error',
-                    title: 'Invalid Phone Number',
-                    text: 'Telephone number must contain numbers only.',
-                });
-                phoneInput.focus();
-                return;
-            }
-
-            // Confirm dialog
-            swalOcd.fire({
-                icon: 'question',
-                title: 'Submit Booking?',
-                html: 'Please confirm that all details are correct before submitting.',
-                showCancelButton: true,
-                confirmButtonText: '<i class="bi bi-send-fill me-1"></i> Yes, Submit',
-                cancelButtonText: 'Review Again',
-                reverseButtons: true,
-            }).then(result => {
-                if (result.isConfirmed) {
-                    confirmed = true;
-                    const btn = document.getElementById('submitBtn');
-                    btn.disabled = true;
-                    btn.innerHTML =
-                        '<span class="spinner-border spinner-border-sm me-1"></span> Submitting…';
-                    document.getElementById('venueEventForm').submit();
-                }
+        if (phoneInput) {
+            phoneInput.addEventListener('input', function() {
+                this.value = this.value.replace(/[^0-9\+\-\s\(\)]/g, '');
             });
-        });
+            phoneInput.addEventListener('keypress', function(e) {
+                if (!/[0-9\+\-\s\(\)]/.test(e.key)) e.preventDefault();
+            });
+        }
 
-        // ── Flash: validation errors ──────────────────────────────────────────
+        let confirmed = false;
+        const form = document.getElementById('venueEventForm');
+        if (form) {
+            form.addEventListener('submit', function(e) {
+                if (confirmed) return;
+                e.preventDefault();
+
+                const phone = phoneInput.value.trim();
+                if (!phone || !/^[0-9\+\-\s\(\)]+$/.test(phone)) {
+                    swalOcd.fire({
+                        icon: 'error',
+                        title: 'Invalid Phone Number',
+                        text: 'Telephone number must contain numbers only.',
+                    });
+                    phoneInput.focus();
+                    return;
+                }
+
+                const maxCap = parseInt(participantsInput.getAttribute('max'));
+                const currentVal = parseInt(participantsInput.value);
+                if (maxCap && currentVal > maxCap) {
+                    swalOcd.fire({
+                        icon: 'error',
+                        title: 'Capacity Exceeded',
+                        text: `The selected venue can only accommodate up to ${maxCap} participants.`,
+                    });
+                    participantsInput.focus();
+                    return;
+                }
+
+                swalOcd.fire({
+                    icon: 'question',
+                    title: 'Submit Booking?',
+                    html: 'Please confirm that all details are correct before submitting.',
+                    showCancelButton: true,
+                    confirmButtonText: '<i class="bi bi-send-fill me-1"></i> Yes, Submit',
+                    cancelButtonText: 'Review Again',
+                    reverseButtons: true,
+                }).then(result => {
+                    if (result.isConfirmed) {
+                        confirmed = true;
+                        const btn = document.getElementById('submitBtn');
+                        btn.disabled = true;
+                        btn.innerHTML =
+                            '<span class="spinner-border spinner-border-sm me-1"></span> Submitting…';
+                        form.submit();
+                    }
+                });
+            });
+        }
+
         @if($errors - > any())
         swalOcd.fire({
             icon: 'error',
@@ -690,7 +752,6 @@
         });
         @endif
 
-        // ── Flash: success ────────────────────────────────────────────────────
         @if(session('success'))
         swalOcd.fire({
             icon: 'success',
@@ -702,7 +763,6 @@
         });
         @endif
 
-        // ── Flash: error ──────────────────────────────────────────────────────
         @if(session('error'))
         swalOcd.fire({
             icon: 'error',
@@ -713,4 +773,4 @@
 
     });
 </script>
-@endpush -->
+@endpush

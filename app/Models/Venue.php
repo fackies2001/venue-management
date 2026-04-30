@@ -10,8 +10,9 @@ class Venue extends Model
     use HasFactory;
 
     protected $fillable = [
+        'building_id',
         'name',
-        'building',
+        'room_floor',
         'color',
         'location',
         'capacity',
@@ -26,6 +27,11 @@ class Venue extends Model
     ];
 
     // ── Relationships ─────────────────────────────────────────
+    public function building()
+    {
+        return $this->belongsTo(Building::class, 'building_id', 'id');
+    }
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);

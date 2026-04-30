@@ -51,15 +51,6 @@ class LoginController extends Controller
             return redirect()->route('login')
                 ->with('error', 'Your account has been deactivated. Please contact the administrator.');
         }
-
-        DB::table('users')
-            ->where('id', Auth::id())
-            ->update([
-                'last_login_at' => now(),
-                'updated_at'    => Auth::user()->updated_at, // ← preserve yung dati
-            ]);
-
-
         return $this->redirectByRole(Auth::user());
     }
 
@@ -75,8 +66,8 @@ class LoginController extends Controller
     private function redirectByRole(User $user)
     {
         return match ($user->role) {
-            User::ROLE_NDRRMOC     => redirect()->route('ndrrmoc.dashboard'),
-            User::ROLE_NAB         => redirect()->route('nab.dashboard'),
+            User::ROLE_USER        => redirect()->route('user.dashboard'),
+            User::ROLE_ADMIN       => redirect()->route('admin.dashboard'),
             User::ROLE_SUPER_ADMIN => redirect()->route('super-admin.dashboard'),
             default                => redirect()->route('user.dashboard'),
         };

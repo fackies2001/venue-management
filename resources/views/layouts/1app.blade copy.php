@@ -14,31 +14,31 @@
     <link href="https://cdn.jsdelivr.net/npm/bootstrap-icons@1.11.3/font/bootstrap-icons.min.css" rel="stylesheet">
     {{-- FullCalendar --}}
     <link href="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.11/index.global.min.css" rel="stylesheet">
+    {{-- SweetAlert2 --}}
+    <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
 
     <style>
         :root {
             --ocd-blue: #1a3c72;
             --ocd-orange: #e87722;
             --ocd-dark: #0a1144;
-            --ocd-light-bg: #f4f7f6;
-            /* Soft light gray para sa main content */
+            --ocd-light-bg: #f4f6f9;
         }
 
         body {
             background: var(--ocd-light-bg);
-            /* Pinalitan na natin ng Light Background */
-            font-family: 'Segoe UI', sans-serif;
+            font-family: 'Segoe UI', system-ui, -apple-system, sans-serif;
             color: #333;
-            /* Dark text for light background */
             overflow-x: hidden;
         }
 
-        /* Sidebar Styles (Dark Theme) */
+        /* ==========================================
+           SIDEBAR STYLES (Dark Theme)
+        ========================================== */
         .sidebar {
             width: 260px;
-            min-height: 100vh;
+            height: 100vh;
             background: var(--ocd-dark);
-            /* Binalik natin sa Dark Blue */
             color: #fff;
             position: fixed;
             top: 0;
@@ -46,8 +46,7 @@
             z-index: 100;
             display: flex;
             flex-direction: column;
-            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.1);
-            /* Shadow para umangat ang sidebar */
+            box-shadow: 4px 0 10px rgba(0, 0, 0, 0.05);
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
         }
 
@@ -56,8 +55,7 @@
         }
 
         .sidebar-brand {
-            padding: 2.5rem 1.5rem 1.5rem;
-            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding: 1.5rem 1.2rem 1rem;
             display: flex;
             flex-direction: column;
             align-items: center;
@@ -65,60 +63,58 @@
         }
 
         .sidebar-brand img {
-            width: 75px;
+            width: 50px;
             height: auto;
-            margin-bottom: 1rem;
-            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.3));
+            margin-bottom: 0.85rem;
+            filter: drop-shadow(0 4px 6px rgba(0, 0, 0, 0.2));
         }
 
         .brand-title {
-            font-weight: 800;
-            font-size: 1.45rem;
-            letter-spacing: 0.5px;
-            margin-bottom: 0.5rem;
-            /* Binago: from 0.2rem ginawang 0.5rem para mas umaliwalas */
+            font-weight: 700;
+            font-size: 1.1rem;
+            letter-spacing: 0.3px;
             color: #fff;
             line-height: 1.2;
         }
 
         .brand-subtitle {
-            font-size: 0.78rem;
+            font-size: 0.75rem;
             color: rgba(255, 255, 255, 0.6);
             margin-top: 0.2rem;
-            /* Dinagdag: para may konting breathing room sa taas */
         }
 
         /* Sidebar Navigation */
         .sidebar-nav {
-            padding: 1.5rem 0;
+            padding: 0.5rem 0;
             flex: 1;
             overflow-y: auto;
         }
 
         .sidebar-nav .nav-label {
-            font-size: 0.68rem;
+            font-size: 0.65rem;
             text-transform: uppercase;
-            letter-spacing: 0.12em;
+            letter-spacing: 0.1em;
             color: rgba(255, 255, 255, 0.4);
             padding: 0.5rem 1.5rem;
             margin-top: 0.5rem;
             font-weight: 600;
         }
 
+        /* ✅ RESTORED: Original edge-to-edge sidebar links */
         .sidebar-nav .nav-item a {
             color: rgba(255, 255, 255, .75);
             display: flex;
             align-items: center;
-            gap: 0.85rem;
-            padding: 0.85rem 1.5rem;
+            gap: 0.75rem;
+            padding: 0.6rem 1.5rem;
             text-decoration: none;
-            font-size: 0.95rem;
+            font-size: 0.88rem;
             transition: all .2s ease;
             border-left: 4px solid transparent;
         }
 
         .sidebar-nav .nav-item a i {
-            font-size: 1.15rem;
+            font-size: 1.1rem;
             transition: color .2s ease;
         }
 
@@ -127,6 +123,7 @@
             color: #fff;
         }
 
+        /* ✅ RESTORED: Original Orange Gradient Active State */
         .sidebar-nav .nav-item a.active {
             background: linear-gradient(90deg, rgba(232, 119, 34, 0.2) 0%, transparent 100%);
             color: #fff;
@@ -138,22 +135,47 @@
             color: var(--ocd-orange);
         }
 
-        /* Main content */
+        /* Profile Section at Bottom */
+        .sidebar-profile {
+            padding: 1rem 1.25rem;
+            background: rgba(0, 0, 0, 0.15);
+            border-top: 1px solid rgba(255, 255, 255, 0.05);
+            margin-top: auto;
+        }
+
+        .profile-avatar {
+            width: 36px;
+            height: 36px;
+            background: rgba(255, 255, 255, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-weight: bold;
+            font-size: 1rem;
+            color: #fff;
+        }
+
+        /* ==========================================
+           MAIN CONTENT & TOP NAVBAR
+        ========================================== */
         .main-content {
             margin-left: 260px;
             min-height: 100vh;
             transition: all 0.3s cubic-bezier(0.25, 0.8, 0.25, 1);
+            display: flex;
+            flex-direction: column;
         }
 
         .main-content.expanded {
             margin-left: 0;
         }
 
-        /* Top navbar */
         .top-navbar {
-            background: var(--ocd-orange);
-            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
-            padding: .65rem 1.75rem;
+            background: #fff;
+            box-shadow: 0 2px 10px rgba(0, 0, 0, 0.04);
+            padding: 0.75rem 1.75rem;
             display: flex;
             align-items: center;
             justify-content: space-between;
@@ -162,104 +184,67 @@
             z-index: 99;
         }
 
-        /* Burger Menu Styling */
         .burger-btn {
-            background: rgba(255, 255, 255, 0.15);
-            border: 1px solid rgba(255, 255, 255, 0.3);
-            border-radius: 6px;
-            color: #fff;
-            font-size: 1.25rem;
+            background: transparent;
+            border: none;
+            color: var(--ocd-blue);
+            font-size: 1.5rem;
             cursor: pointer;
-            padding: 0.2rem 0.6rem;
-            transition: all 0.2s;
+            padding: 0;
+            transition: color 0.2s;
             display: flex;
             align-items: center;
-            justify-content: center;
         }
 
         .burger-btn:hover {
-            background: rgba(255, 255, 255, 0.25);
+            color: var(--ocd-orange);
         }
 
-        /* Cards */
-        .card {
-            background: #fff;
-            color: #333;
-            border: none;
-            border-radius: 12px;
-            box-shadow: 0 4px 16px rgba(0, 0, 0, .06);
-            /* Lighter shadow for light background */
-            border-top: 5px solid var(--ocd-orange);
-            overflow: hidden;
-        }
-
-        .card-header {
-            background: #fff;
-            border-bottom: 1px solid #f0f0f0;
-            font-weight: 700;
+        /* ✅ NEW: Custom styles for Division and Logout (Blue default, Orange hover) */
+        .top-division-badge {
             color: var(--ocd-blue);
-            padding: 1.15rem 1.25rem;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            padding: 0.35rem 0.75rem;
+            border-radius: 6px;
+            background: rgba(26, 60, 114, 0.05);
+            cursor: default;
         }
 
-        /* Titles inside pages (like "Booking History") */
-        h1,
-        h2,
-        h3,
-        h4,
-        h5,
-        .page-title {
+        .top-division-badge:hover {
+            color: var(--ocd-orange);
+            background: rgba(232, 119, 34, 0.1);
+        }
+
+        .top-logout-btn {
             color: var(--ocd-blue);
-            /* Ensure page titles match the theme */
+            border: 1px solid var(--ocd-blue);
+            background: transparent;
+            transition: all 0.2s ease;
+            font-weight: 600;
+            border-radius: 6px;
         }
 
-        /* Badges */
-        .badge-pending {
-            background: #fff3cd;
-            color: #856404;
+        .top-logout-btn:hover,
+        .top-logout-btn:focus,
+        .top-logout-btn:active {
+            background: var(--ocd-orange) !important;
+            border-color: var(--ocd-orange) !important;
+            color: #fff !important;
         }
 
-        .badge-approved {
-            background: #d1e7dd;
-            color: #0f5132;
-        }
-
-        .badge-rejected {
-            background: #f8d7da;
-            color: #842029;
-        }
-
-        .badge-cancelled {
-            background: #e2e3e5;
-            color: #41464b;
-        }
-
-        .badge-completed {
-            background: #cff4fc;
-            color: #055160;
-        }
-
-        .badge-info {
-            background: #cff4fc;
-            color: #055160;
-        }
-
-        .alert {
-            border-radius: 8px;
-            box-shadow: 0 2px 8px rgba(0, 0, 0, 0.05);
-        }
-
-        /* Scrollbar styling for Dark Sidebar */
+        /* Custom Scrollbar for Sidebar */
         .sidebar-nav::-webkit-scrollbar {
-            width: 5px;
+            width: 4px;
         }
 
         .sidebar-nav::-webkit-scrollbar-thumb {
-            background: rgba(255, 255, 255, 0.15);
+            background: rgba(255, 255, 255, 0.1);
             border-radius: 10px;
         }
 
         .sidebar-nav::-webkit-scrollbar-thumb:hover {
-            background: rgba(255, 255, 255, 0.25);
+            background: rgba(255, 255, 255, 0.2);
         }
     </style>
 
@@ -283,8 +268,7 @@
 
                 @php
                 $prefix = match (auth()->user()->role) {
-                'ndrrmoc_admin' => 'ndrrmoc',
-                'nab_admin' => 'nab',
+                'admin' => 'admin',
                 'super_admin' => 'super-admin',
                 default => 'user',
                 };
@@ -314,7 +298,19 @@
                 <li class="nav-item">
                     <a href="{{ route('super-admin.users.index') }}"
                         class="{{ request()->routeIs('super-admin.users*') ? 'active' : '' }}">
-                        <i class="bi bi-people-fill"></i> User Management
+                        <i class="bi bi-people-fill"></i> User
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('super-admin.divisions.index') }}"
+                        class="{{ request()->routeIs('super-admin.divisions*') ? 'active' : '' }}">
+                        <i class="bi bi-building"></i> Division
+                    </a>
+                </li>
+                <li class="nav-item">
+                    <a href="{{ route('super-admin.buildings.index') }}"
+                        class="{{ request()->routeIs('super-admin.buildings*') || request()->routeIs('super-admin.venues*') ? 'active' : '' }}">
+                        <i class="bi bi-door-open-fill"></i> Venue
                     </a>
                 </li>
                 @endif
@@ -322,27 +318,26 @@
             @endauth
         </nav>
 
-        {{-- User info at bottom (Updated for Dark Theme) --}}
+        {{-- User info at bottom --}}
         @auth
-        <div style="padding:1.25rem 1.5rem; background: rgba(0,0,0,0.2); border-top: 1px solid rgba(255,255,255,0.05);">
+        <div class="sidebar-profile">
             <div class="d-flex align-items-center gap-3 mb-3">
-                <div
-                    style="width: 38px; height: 38px; background: var(--ocd-orange); border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: bold; font-size: 1.1rem; color: #fff; box-shadow: 0 2px 5px rgba(0,0,0,0.3);">
+                <div class="profile-avatar">
                     {{ strtoupper(substr(auth()->user()->name, 0, 1)) }}
                 </div>
                 <div style="overflow: hidden;">
                     <div
-                        style="font-weight:600; font-size: 0.9rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;">
+                        style="font-weight:600; font-size: 0.85rem; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; color: #fff;">
                         {{ auth()->user()->name }}
                     </div>
-                    <div style="color:rgba(255,255,255,0.6); font-size: 0.75rem; text-transform:capitalize;">
+                    <div style="color:rgba(255,255,255,0.6); font-size: 0.7rem; text-transform:capitalize;">
                         {{ str_replace('_', ' ', auth()->user()->role) }}
                     </div>
                 </div>
             </div>
 
             <a href="{{ route('profile.edit') }}" class="btn btn-sm w-100"
-                style="background: rgba(255,255,255,0.05); color: #fff; border: 1px solid rgba(255,255,255,0.2); font-size:.8rem; font-weight: 500; transition: all 0.2s; border-radius: 6px;">
+                style="background: rgba(255,255,255,0.05); color: rgba(255,255,255,0.8); border: 1px solid rgba(255,255,255,0.15); font-size:.75rem; transition: all 0.2s; border-radius: 6px;">
                 <i class="bi bi-person-gear me-1"></i> Edit Profile
             </a>
         </div>
@@ -358,47 +353,28 @@
                 <button class="burger-btn" id="burgerToggle" aria-label="Toggle Sidebar">
                     <i class="bi bi-list"></i>
                 </button>
-                <div style="font-weight:700; color:#fff; font-size: 1.1rem; letter-spacing: 0.5px; margin-top: 1px;">
-                    Venue Management System
-                </div>
             </div>
 
             @auth
-            <div class="d-flex align-items-center gap-4">
-                <span style="font-size:.85rem; font-weight: 500; color: rgba(255,255,255,0.95);">
-                    <i class="bi bi-person-badge me-1 fs-6"></i> {{ auth()->user()->department }}
-                </span>
+            <div class="d-flex align-items-center gap-3">
+                {{-- ✅ IMPLEMENTED: Custom Division Badge (Blue by default, Orange on Hover) --}}
+                <div class="d-none d-sm-block top-division-badge" style="font-size: 0.85rem;">
+                    <i class="bi bi-building me-1"></i> {{ auth()->user()->division->name ?? 'No Division' }}
+                </div>
+
+                {{-- ✅ IMPLEMENTED: Custom Logout Button (Blue by default, Solid Orange on Hover) --}}
                 <form method="POST" action="{{ route('logout') }}" class="m-0">
                     @csrf
-                    <button type="submit" class="btn btn-sm"
-                        style="border-radius: 6px; font-weight: 600; background: rgba(255,255,255,0.15); color: #fff; border: 1px solid rgba(255,255,255,0.4); transition: all 0.2s;"
-                        onmouseover="this.style.background='rgba(255,255,255,0.25)'"
-                        onmouseout="this.style.background='rgba(255,255,255,0.15)'">
-                        <i class="bi bi-box-arrow-right"></i> Logout
+                    <button type="submit" class="btn btn-sm top-logout-btn px-3">
+                        <i class="bi bi-box-arrow-right me-1"></i> Logout
                     </button>
                 </form>
             </div>
             @endauth
         </div>
 
-        {{-- Flash Messages --}}
-        <div class="px-4 pt-4">
-            @if (session('success'))
-            <div class="alert alert-success alert-dismissible fade show" role="alert">
-                <i class="bi bi-check-circle-fill me-2"></i>{{ session('success') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-            @if (session('error'))
-            <div class="alert alert-danger alert-dismissible fade show" role="alert">
-                <i class="bi bi-exclamation-triangle-fill me-2"></i>{{ session('error') }}
-                <button type="button" class="btn-close" data-bs-dismiss="alert"></button>
-            </div>
-            @endif
-        </div>
-
         {{-- Page Content --}}
-        <div class="p-4">
+        <div class="p-4 flex-grow-1">
             @yield('content')
         </div>
     </div>
@@ -406,13 +382,53 @@
     {{-- Scripts --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js"></script>
-    <script src="{{ asset('js/fullcalendar.min.js') }}"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
 
     {{-- Script for Burger Menu --}}
     <script>
         document.getElementById('burgerToggle').addEventListener('click', function() {
             document.getElementById('sidebar').classList.toggle('collapsed');
             document.getElementById('mainContent').classList.toggle('expanded');
+
+            // FIX: Force FullCalendar to resize smoothly during the 0.3s CSS transition
+            let timesRun = 0;
+            let interval = setInterval(() => {
+                window.dispatchEvent(new Event('resize'));
+                timesRun++;
+                if (timesRun === 6) clearInterval(interval); // Stops after 300ms
+            }, 50);
+        });
+    </script>
+
+    {{-- Global SweetAlert2 Toast Notifications --}}
+    <script>
+        document.addEventListener('DOMContentLoaded', function() {
+            const Toast = Swal.mixin({
+                toast: true,
+                position: 'top-end',
+                showConfirmButton: false,
+                timer: 4000,
+                timerProgressBar: true,
+                didOpen: (toast) => {
+                    toast.addEventListener('mouseenter', Swal.stopTimer)
+                    toast.addEventListener('mouseleave', Swal.resumeTimer)
+                }
+            });
+
+            @if(session('success'))
+            Toast.fire({
+                icon: 'success',
+                title: "{{ session('success') }}"
+            });
+            @endif
+
+            @if(session('error'))
+            Toast.fire({
+                icon: 'error',
+                title: "{{ session('error') }}"
+            });
+            @endif
         });
     </script>
 

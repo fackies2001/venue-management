@@ -6,8 +6,10 @@ use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
 use App\Models\Booking;
+use App\Models\Building;
 use App\Models\VenueEvent;
 use App\Models\Venue;
+use App\Models\Division;      // ✅ FIXED: Idinagdag ang Division model
 use Illuminate\Http\Request;
 use App\Mail\BookingApproved;
 use App\Mail\BookingCancelled;
@@ -39,24 +41,20 @@ class AdminBookingController extends Controller
         return view('admin.bookings.show', compact('booking'));
     }
 
-    // ✅ DINAGDAG: Edit View para sa Admin
     public function edit(Booking $booking)
     {
-        $venues = Venue::active()->get();
-        $buildings = Venue::active()
-            ->whereNotNull('building')
-            ->distinct()
-            ->orderBy('building')
-            ->pluck('building');
+        $venues    = Venue::active()->get();
+        $buildings = Building::active()->orderBy('name')->get();
 
-        return view('admin.bookings.edit', compact('booking', 'venues', 'buildings'));
+        // ✅ FIXED: Kinukuha na ngayon ang Divisions galing sa database
+        $divisions = Division::orderBy('name')->get();
+
+        // ✅ FIXED: Ipinasa ang $divisions gamit ang compact()
+        return view('admin.bookings.edit', compact('booking', 'venues', 'buildings', 'divisions'));
     }
 
-    // ✅ DINAGDAG: Update logic para sa Admin
     public function update(Request $request, Booking $booking)
     {
-
-
         $validated = $request->validate([
             'venue_id'           => ['required', 'exists:venues,id'],
             'event_title'        => ['required', 'string', 'max:255'],
@@ -65,7 +63,6 @@ class AdminBookingController extends Controller
             'start_time'         => ['required', 'date_format:H:i'],
             'end_time'           => ['required', 'date_format:H:i', 'after:start_time'],
             'expected_attendees' => ['required', 'integer', 'min:1'],
-            'building'           => ['required', 'string'],
             'booker_name'        => ['required', 'string', 'max:255'],
             'service'            => ['required', 'string', 'max:255'],
             'division'           => ['required', 'string', 'max:255'],
@@ -98,7 +95,7 @@ class AdminBookingController extends Controller
 
         $booking->update($validated);
 
-        // ✅ Kung approved na, i-update din yung naka-reflect sa Calendar (VenueEvent)
+        // If already approved, update the reflected VenueEvent on the Calendar
         if ($booking->status === Booking::STATUS_APPROVED) {
             $booking->venueEvent()->update([
                 'venue_id'   => $booking->venue_id,
@@ -110,24 +107,22 @@ class AdminBookingController extends Controller
         }
 
         $prefix = match (auth()->user()->role) {
-            'ndrrmoc_admin' => 'ndrrmoc',
-            'nab_admin' => 'nab',
+            'admin'       => 'admin',
             'super_admin' => 'super-admin',
-            default => 'user',
+            default       => 'user',
         };
 
         return redirect()->route($prefix . '.bookings.index')
             ->with('success', 'Booking updated successfully.');
     }
 
-    // ✅ DINAGDAG: Destroy logic para sa Admin
     public function destroy(Booking $booking)
     {
         if ($booking->attachment_path) {
             Storage::disk('public')->delete($booking->attachment_path);
         }
 
-        $booking->venueEvent()->delete(); // Tanggalin din sa Calendar kung meron
+        $booking->venueEvent()->delete();
         $booking->delete();
 
         return back()->with('success', 'Booking completely deleted.');

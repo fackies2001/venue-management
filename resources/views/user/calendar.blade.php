@@ -71,7 +71,6 @@
             padding: 1px 3px;
         }
 
-        /* Form panel sticky */
         .form-panel .card {
             position: sticky;
             top: 80px;
@@ -86,7 +85,6 @@
             padding: .75rem 1.25rem;
         }
 
-        /* No overflow — all fields show at once */
         .form-panel .card-body {
             padding: .9rem 1.1rem;
             overflow: visible;
@@ -142,7 +140,6 @@
             color: #fff;
         }
 
-        /* 2-column grid */
         .form-grid {
             display: grid;
             grid-template-columns: 1fr 1fr;
@@ -157,7 +154,6 @@
             margin-bottom: 0 !important;
         }
 
-        /* Section divider label */
         .section-divider {
             grid-column: 1 / -1;
             font-size: .68rem;
@@ -170,7 +166,6 @@
             margin-top: .35rem;
         }
 
-        /* Event modal */
         #eventModal .modal-dialog {
             max-width: 560px;
         }
@@ -184,6 +179,7 @@
             width: 30%;
             color: #6c757d;
             font-weight: 600;
+            font-size: 1rem;
         }
 
         #eventModal .modal-body table td {
@@ -191,12 +187,52 @@
             color: #333;
         }
 
-        #eventModal .modal-body table th {
-            font-size: 1rem;
-        }
-
         .swal2-confirm.swal-btn-blue {
             background-color: var(--ocd-dark) !important;
+        }
+
+        /* --- NEW LEGEND UI FIXES --- */
+        .legend-container {
+            max-height: 160px;
+            overflow-y: auto;
+            background: #f8f9fa;
+            border: 1px solid #e9ecef;
+            border-radius: 6px;
+            padding: 1rem;
+        }
+
+        /* Custom Scrollbar for the Legend */
+        .legend-container::-webkit-scrollbar {
+            width: 6px;
+        }
+
+        .legend-container::-webkit-scrollbar-track {
+            background: #f1f1f1;
+            border-radius: 4px;
+        }
+
+        .legend-container::-webkit-scrollbar-thumb {
+            background: #c1c1c1;
+            border-radius: 4px;
+        }
+
+        .legend-container::-webkit-scrollbar-thumb:hover {
+            background: #a8a8a8;
+        }
+
+        .legend-toggle-btn {
+            font-size: 0.8rem;
+            font-weight: 600;
+            color: var(--ocd-dark);
+            border-color: #dee2e6;
+        }
+
+        .legend-toggle-btn:hover,
+        .legend-toggle-btn:focus {
+            background-color: #f8f9fa;
+            color: var(--ocd-orange);
+            border-color: var(--ocd-orange);
+            box-shadow: none;
         }
 
         @media (max-width: 1200px) {
@@ -243,47 +279,71 @@
         <div class="calendar-panel">
             <div class="card p-4">
 
-                {{-- Filters --}}
-                <div class="mb-3 d-flex gap-2 flex-wrap">
-                    <select id="buildingFilter" class="form-select form-select-sm" style="max-width:200px; font-weight:500;">
-                        <option value="">All Buildings</option>
-                        @foreach ($buildings as $building)
-                            <option value="{{ $building }}">{{ $building }}</option>
-                        @endforeach
-                    </select>
+                {{-- Toolbar: Filters & Legend Toggle --}}
+                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
 
-                    <select id="venueFilter" class="form-select form-select-sm" style="max-width:220px; font-weight:500;">
-                        <option value="">All Venues</option>
-                        @foreach ($venues as $venue)
-                            <option value="{{ $venue->id }}" data-building="{{ $venue->building }}">
-                                {{ $venue->name }}
-                            </option>
-                        @endforeach
-                    </select>
+                    {{-- Filters --}}
+                    <div class="d-flex gap-2 flex-wrap">
+                        <select id="buildingFilter" class="form-select form-select-sm"
+                            style="max-width:200px; font-weight:500;">
+                            <option value="">All Buildings</option>
+                            @foreach ($buildings as $building)
+                                <option value="{{ $building->id }}">{{ $building->name }}</option>
+                            @endforeach
+                        </select>
+
+                        <select id="venueFilter" class="form-select form-select-sm"
+                            style="max-width:220px; font-weight:500;">
+                            <option value="">All Venues</option>
+                            @foreach ($venues as $venue)
+                                <option value="{{ $venue->id }}" data-building="{{ $venue->building_id }}">
+                                    {{ $venue->name }} {{ $venue->room_floor ? '(' . $venue->room_floor . ')' : '' }}
+                                </option>
+                            @endforeach
+                        </select>
+                    </div>
+
+                    {{-- Legend Toggle Button --}}
+                    <button class="btn btn-sm btn-outline-secondary legend-toggle-btn d-flex align-items-center gap-1"
+                        type="button" data-bs-toggle="collapse" data-bs-target="#venueLegend" aria-expanded="false"
+                        aria-controls="venueLegend">
+                        <i class="bi bi-palette-fill"></i> Toggle Color Legend
+                    </button>
                 </div>
 
-                {{-- Legend --}}
-                <div class="mb-3 p-3 rounded" style="background:#f8f9fa; border:1px solid #e9ecef;">
-                    @php $groupedVenues = $venues->groupBy('building'); @endphp
-                    <div class="row">
-                        @foreach ($groupedVenues as $buildingName => $buildingVenues)
-                            <div class="col-md-6 mb-2 mb-md-0">
-                                <div class="fw-bold mb-2" style="color:var(--ocd-dark); font-size:.85rem;">
-                                    {{ $buildingName ?: 'Other Venues' }}
+                {{-- Collapsible & Scrollable Legend --}}
+                <div class="collapse mb-3" id="venueLegend">
+                    <div class="legend-container">
+                        <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
+                            @foreach ($buildings as $building)
+                                <div class="col">
+                                    <div class="fw-bold mb-2 border-bottom pb-1"
+                                        style="color:var(--ocd-dark); font-size:.85rem;">
+                                        {{ $building->name }}
+                                    </div>
+                                    <div class="d-flex flex-column gap-2 ps-1">
+                                        @foreach ($building->venues as $venue)
+                                            @php $color = $venue->color ?? '#6c757d'; @endphp
+                                            <span class="d-flex align-items-center gap-2"
+                                                style="font-size:.8rem; color:#495057;">
+                                                <span
+                                                    style="display:inline-block;width:14px;height:14px;border-radius:4px;background:{{ $color }};flex-shrink:0;"></span>
+                                                <span class="text-truncate"
+                                                    title="{{ $venue->name }}">{{ $venue->name }}</span>
+                                                @if ($venue->room_floor)
+                                                    <span
+                                                        style="font-size: 0.7rem; color: #888; flex-shrink:0;">({{ $venue->room_floor }})</span>
+                                                @endif
+                                            </span>
+                                        @endforeach
+                                        @if ($building->venues->isEmpty())
+                                            <span style="font-size:.8rem; color:#6c757d; font-style:italic;">No venues
+                                                yet</span>
+                                        @endif
+                                    </div>
                                 </div>
-                                <div class="d-flex flex-column gap-2 ps-1">
-                                    @foreach ($buildingVenues as $venue)
-                                        @php $color = $venue->color ?? '#6c757d'; @endphp
-                                        <span class="d-flex align-items-center gap-2"
-                                            style="font-size:.8rem; color:#495057;">
-                                            <span
-                                                style="display:inline-block;width:14px;height:14px;border-radius:4px;background:{{ $color }};flex-shrink:0;"></span>
-                                            {{ $venue->name }}
-                                        </span>
-                                    @endforeach
-                                </div>
-                            </div>
-                        @endforeach
+                            @endforeach
+                        </div>
                     </div>
                 </div>
 
@@ -291,7 +351,7 @@
             </div>
         </div>
 
-        {{-- ══ RIGHT: Booking Form — 2-column, no scroll ══ --}}
+        {{-- ══ RIGHT: Booking Form --}}
         <div class="form-panel">
             <div class="card">
                 <div class="card-header">
@@ -302,8 +362,7 @@
                     <form id="venueEventForm" method="POST"
                         action="{{ route(
                             match (auth()->user()->role) {
-                                'ndrrmoc_admin' => 'ndrrmoc.bookings.store',
-                                'nab_admin' => 'nab.bookings.store',
+                                'admin' => 'admin.bookings.store',
                                 'super_admin' => 'super-admin.bookings.store',
                                 default => 'user.bookings.store',
                             },
@@ -313,7 +372,6 @@
 
                         <div class="form-grid">
 
-                            {{-- ── Section: Venue Details ── --}}
                             <div class="section-divider">Venue Details</div>
 
                             {{-- Building --}}
@@ -321,11 +379,11 @@
                                 <label class="form-label">Building <span class="text-danger">*</span></label>
                                 <select id="buildingSelect" name="building"
                                     class="form-select @error('building') is-invalid @enderror" required>
-                                    <option value="">-- Select Building --</option>
+                                    <option value="" data-id="">-- Select Building --</option>
                                     @foreach ($buildings as $building)
-                                        <option value="{{ $building }}"
-                                            {{ old('building') === $building ? 'selected' : '' }}>
-                                            {{ $building }}
+                                        <option value="{{ $building->name }}" data-id="{{ $building->id }}"
+                                            {{ old('building') === $building->name ? 'selected' : '' }}>
+                                            {{ $building->name }}
                                         </option>
                                     @endforeach
                                 </select>
@@ -338,15 +396,15 @@
                                     class="form-select @error('venue_id') is-invalid @enderror" required>
                                     <option value="">-- Select Building First --</option>
                                     @foreach ($venues as $venue)
-                                        <option value="{{ $venue->id }}" data-building="{{ $venue->building }}"
+                                        <option value="{{ $venue->id }}" data-building="{{ $venue->building_id }}"
+                                            data-capacity="{{ $venue->capacity }}"
                                             {{ old('venue_id') == $venue->id ? 'selected' : '' }} hidden>
-                                            {{ $venue->name }}
+                                            {{ $venue->name }} {{ $venue->room_floor ? '- ' . $venue->room_floor : '' }}
                                         </option>
                                     @endforeach
                                 </select>
                             </div>
 
-                            {{-- Subject (full width) --}}
                             <div class="mb-2 col-full">
                                 <label class="form-label">Subject <span class="text-danger">*</span></label>
                                 <input type="text" name="event_title"
@@ -354,7 +412,6 @@
                                     value="{{ old('event_title') }}" placeholder="Enter name of event" required>
                             </div>
 
-                            {{-- Agenda (full width) --}}
                             <div class="mb-2 col-full">
                                 <label class="form-label">Agenda / Topic</label>
                                 <input type="text" name="agenda"
@@ -362,7 +419,6 @@
                                     placeholder="Enter Agenda/Topic">
                             </div>
 
-                            {{-- Date --}}
                             <div class="mb-2">
                                 <label class="form-label">Reservation Date <span class="text-danger">*</span></label>
                                 <input type="date" name="event_date"
@@ -370,12 +426,11 @@
                                     value="{{ old('event_date') }}" min="{{ date('Y-m-d') }}" required>
                             </div>
 
-                            {{-- Start + End Time stacked in one cell --}}
                             <div class="mb-2">
                                 <label class="form-label">Time (Start – End) <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-1">
-                                    <select name="start_time" class="form-select @error('start_time') is-invalid @enderror"
-                                        required>
+                                    <select name="start_time"
+                                        class="form-select @error('start_time') is-invalid @enderror" required>
                                         <option value="">Start</option>
                                         @foreach (generateTimeOptions() as $time)
                                             <option value="{{ $time['value'] }}"
@@ -397,10 +452,8 @@
                                 </div>
                             </div>
 
-                            {{-- ── Section: Requester Info ── --}}
                             <div class="section-divider">Requester Information</div>
 
-                            {{-- Name --}}
                             <div class="mb-2">
                                 <label class="form-label">Name <span class="text-danger">*</span></label>
                                 <input type="text" name="booker_name"
@@ -409,7 +462,6 @@
                                     required>
                             </div>
 
-                            {{-- Email --}}
                             <div class="mb-2">
                                 <label class="form-label">Email Address <span class="text-danger">*</span></label>
                                 <input type="email" name="email"
@@ -417,7 +469,6 @@
                                     value="{{ old('email', auth()->user()->email) }}" placeholder="Enter email" required>
                             </div>
 
-                            {{-- Service --}}
                             <div class="mb-2">
                                 <label class="form-label">Service <span class="text-danger">*</span></label>
                                 <input type="text" name="service"
@@ -425,15 +476,22 @@
                                     value="{{ old('service') }}" placeholder="Enter service" required>
                             </div>
 
-                            {{-- Division --}}
                             <div class="mb-2">
                                 <label class="form-label">Division <span class="text-danger">*</span></label>
-                                <input type="text" name="division"
-                                    class="form-control @error('division') is-invalid @enderror"
-                                    value="{{ old('division') }}" placeholder="Enter division" required>
+                                <select name="division" class="form-select @error('division') is-invalid @enderror"
+                                    required>
+                                    <option value="" selected disabled>Select division</option>
+                                    @if (isset($divisions))
+                                        @foreach ($divisions as $division)
+                                            <option value="{{ $division->name }}"
+                                                {{ old('division', auth()->user()->division->name ?? '') == $division->name ? 'selected' : '' }}>
+                                                {{ $division->name }}
+                                            </option>
+                                        @endforeach
+                                    @endif
+                                </select>
                             </div>
 
-                            {{-- Phone --}}
                             <div class="mb-2">
                                 <label class="form-label">Tel. / IP Phone No. <span class="text-danger">*</span></label>
                                 <input type="text" id="phoneInput" name="phone"
@@ -443,21 +501,21 @@
                                 <div class="form-text text-muted">Numbers only (0-9, +, -, spaces)</div>
                             </div>
 
-                            {{-- No. of Participants --}}
                             <div class="mb-2">
                                 <label class="form-label">No. of Participants <span class="text-danger">*</span></label>
-                                <input type="number" name="expected_attendees"
+                                <input type="number" id="participantsInput" name="expected_attendees"
                                     class="form-control @error('expected_attendees') is-invalid @enderror"
                                     value="{{ old('expected_attendees') }}" min="1" placeholder="Enter number"
                                     required>
+                                <div id="capacityHelper" class="form-text text-primary fw-semibold"
+                                    style="display:none; font-size: 0.7rem; margin-top: 2px;"></div>
                             </div>
 
-                            {{-- ── Section: Additional ── --}}
                             <div class="section-divider">Additional</div>
 
-                            {{-- Attachment --}}
                             <div class="mb-2">
-                                <label class="form-label">Attachment (Optional)</label>
+                                <label class="form-label">Notice of Meeting <span
+                                        class="text-muted fw-normal"></span></label>
                                 <input type="file" name="attachment_path"
                                     class="form-control @error('attachment_path') is-invalid @enderror"
                                     accept=".pdf,.docx,.jpg,.png"
@@ -465,13 +523,12 @@
                                 <div class="form-text">Max 5MB · PDF, DOCX, JPG, PNG</div>
                             </div>
 
-                            {{-- Remarks --}}
                             <div class="mb-2">
                                 <label class="form-label">Remarks</label>
                                 <textarea name="remarks" class="form-control @error('remarks') is-invalid @enderror" placeholder="Enter remarks">{{ old('remarks') }}</textarea>
                             </div>
 
-                        </div>{{-- /.form-grid --}}
+                        </div>
 
                         <button type="submit" class="btn btn-submit" id="submitBtn">
                             <i class="bi bi-send-fill me-2"></i> Submit Booking
@@ -484,7 +541,7 @@
 
     </div>
 
-    {{-- ══ Event Detail Modal ══ --}}
+    {{-- Event Detail Modal --}}
     <div class="modal fade" id="eventModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow">
@@ -527,14 +584,14 @@
 
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <script src="https://cdn.jsdelivr.net/npm/fullcalendar@6.1.15/index.global.min.js"></script>
 
     <script>
         document.addEventListener('DOMContentLoaded', function() {
 
             @php
                 $prefix = match (auth()->user()->role) {
-                    'ndrrmoc_admin' => 'ndrrmoc',
-                    'nab_admin' => 'nab',
+                    'admin' => 'admin',
                     'super_admin' => 'super-admin',
                     default => 'user',
                 };
@@ -549,148 +606,194 @@
                 buttonsStyling: true,
             });
 
-            // ── FullCalendar ──────────────────────────────────────────────────────
-            const calendar = new FullCalendar.Calendar(document.getElementById('calendar'), {
-                initialView: 'dayGridMonth',
-                height: 'auto',
-                headerToolbar: {
-                    left: 'prev,next today',
-                    center: 'title',
-                    right: 'dayGridMonth,timeGridWeek,timeGridDay',
-                },
-                eventDisplay: 'block',
+            const calendarEl = document.getElementById('calendar');
+            if (calendarEl) {
+                const calendar = new FullCalendar.Calendar(calendarEl, {
+                    initialView: 'dayGridMonth',
+                    height: 'auto',
+                    headerToolbar: {
+                        left: 'prev,next today',
+                        center: 'title',
+                        right: 'dayGridMonth,timeGridWeek,timeGridDay',
+                    },
+                    eventDisplay: 'block',
 
-                eventContent: function(arg) {
-                    return {
-                        html: `<div style="padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.88rem;font-weight:600;">${arg.event.title}</div>`
-                    };
-                },
+                    eventContent: function(arg) {
+                        return {
+                            html: `<div style="padding:2px 5px;overflow:hidden;text-overflow:ellipsis;white-space:nowrap;font-size:.88rem;font-weight:600;">${arg.event.title}</div>`
+                        };
+                    },
 
-                events: function(info, successCb, failureCb) {
-                    const venueId = document.getElementById('venueFilter').value;
-                    fetch(`${eventsUrl}?start=${info.startStr}&end=${info.endStr}&venue_id=${venueId}`)
-                        .then(r => r.json())
-                        .then(successCb)
-                        .catch(failureCb);
-                },
+                    events: function(info, successCb, failureCb) {
+                        const venueId = document.getElementById('venueFilter').value;
+                        fetch(
+                                `${eventsUrl}?start=${info.startStr}&end=${info.endStr}&venue_id=${venueId}`
+                            )
+                            .then(r => r.json())
+                            .then(successCb)
+                            .catch(failureCb);
+                    },
 
-                eventClick: function(info) {
-                    const e = info.event;
-                    const fmt = d => d ? d.toLocaleDateString('en-PH', {
-                        year: 'numeric',
-                        month: 'long',
-                        day: 'numeric'
-                    }) : '—';
-                    document.getElementById('modalTitle').textContent = e.title;
-                    document.getElementById('modalVenue').textContent = e.extendedProps.venue || '—';
-                    document.getElementById('modalDate').textContent = fmt(e.start);
-                    document.getElementById('modalTime').textContent = e.extendedProps.time || '—';
-                    document.getElementById('modalBooker').textContent = e.extendedProps.booker || '—';
-                    document.getElementById('modalDesc').textContent = e.extendedProps.description ||
-                        '—';
-                    modal.show();
-                },
+                    eventClick: function(info) {
+                        const e = info.event;
+                        const fmt = d => d ? d.toLocaleDateString('en-PH', {
+                            year: 'numeric',
+                            month: 'long',
+                            day: 'numeric'
+                        }) : '—';
+                        document.getElementById('modalTitle').textContent = e.title;
+                        document.getElementById('modalVenue').textContent = e.extendedProps.venue ||
+                            '—';
+                        document.getElementById('modalDate').textContent = fmt(e.start);
+                        document.getElementById('modalTime').textContent = e.extendedProps.time || '—';
+                        document.getElementById('modalBooker').textContent = e.extendedProps.booker ||
+                            '—';
+                        document.getElementById('modalDesc').textContent = e.extendedProps
+                            .description || '—';
+                        modal.show();
+                    },
 
-                dateClick: function(info) {
-                    const dateInput = document.querySelector('[name="event_date"]');
-                    if (dateInput) dateInput.value = info.dateStr;
-                    if (window.innerWidth <= 1200) {
-                        document.querySelector('.form-panel').scrollIntoView({
-                            behavior: 'smooth'
-                        });
-                    }
-                },
-            });
-
-            calendar.render();
-
-            // ── Venue filter ──────────────────────────────────────────────────────
-            document.getElementById('venueFilter').addEventListener('change', () => calendar.refetchEvents());
-
-            // ── Building filter ───────────────────────────────────────────────────
-            document.getElementById('buildingFilter').addEventListener('change', function() {
-                const building = this.value;
-                const venueSelect = document.getElementById('venueFilter');
-                venueSelect.value = '';
-                Array.from(venueSelect.options).forEach(opt => {
-                    if (!opt.value) return;
-                    opt.hidden = building ? opt.dataset.building !== building : false;
+                    dateClick: function(info) {
+                        const dateInput = document.querySelector('[name="event_date"]');
+                        if (dateInput) dateInput.value = info.dateStr;
+                        if (window.innerWidth <= 1200) {
+                            document.querySelector('.form-panel').scrollIntoView({
+                                behavior: 'smooth'
+                            });
+                        }
+                    },
                 });
-                calendar.refetchEvents();
-            });
 
-            // ── Form: building → venue cascade ────────────────────────────────────
+                calendar.render();
+
+                document.getElementById('venueFilter').addEventListener('change', () => calendar.refetchEvents());
+
+                document.getElementById('buildingFilter').addEventListener('change', function() {
+                    const buildingId = this.value;
+                    const venueSelect = document.getElementById('venueFilter');
+                    venueSelect.value = '';
+                    Array.from(venueSelect.options).forEach(opt => {
+                        if (!opt.value) return;
+                        opt.hidden = buildingId ? opt.dataset.building !== buildingId : false;
+                    });
+                    calendar.refetchEvents();
+                });
+            }
+
             document.getElementById('buildingSelect').addEventListener('change', function() {
-                const building = this.value;
+                const selectedOption = this.options[this.selectedIndex];
+                const buildingId = selectedOption.getAttribute('data-id');
+
                 const venueSelect = document.getElementById('venueSelect');
                 venueSelect.value = '';
-                venueSelect.options[0].textContent = building ? '-- Select Venue --' :
+                venueSelect.options[0].textContent = buildingId ? '-- Select Venue --' :
                     '-- Select Building First --';
+
                 Array.from(venueSelect.options).forEach(opt => {
                     if (!opt.value) return;
-                    opt.hidden = building ? opt.dataset.building !== building : true;
+                    opt.hidden = buildingId ? opt.dataset.building !== buildingId : true;
                 });
+
+                venueSelect.dispatchEvent(new Event('change'));
             });
 
-            // ── Restore cascade on validation error ───────────────────────────────
+            const participantsInput = document.getElementById('participantsInput');
+            const capacityHelper = document.getElementById('capacityHelper');
+
+            document.getElementById('venueSelect').addEventListener('change', function() {
+                const selectedOption = this.options[this.selectedIndex];
+                const maxCapacity = selectedOption.getAttribute('data-capacity');
+
+                if (maxCapacity && maxCapacity > 0) {
+                    participantsInput.setAttribute('max', maxCapacity);
+                    capacityHelper.style.display = 'block';
+                    capacityHelper.innerHTML =
+                        `<i class="bi bi-info-circle"></i> Max capacity: ${maxCapacity} pax`;
+
+                    if (parseInt(participantsInput.value) > maxCapacity) {
+                        participantsInput.value = maxCapacity;
+                    }
+                } else {
+                    participantsInput.removeAttribute('max');
+                    capacityHelper.style.display = 'none';
+                }
+            });
+
             @if (old('building'))
                 const savedBuilding = "{{ old('building') }}";
                 const bs = document.getElementById('buildingSelect');
                 bs.value = savedBuilding;
                 bs.dispatchEvent(new Event('change'));
                 @if (old('venue_id'))
-                    document.getElementById('venueSelect').value = "{{ old('venue_id') }}";
+                    setTimeout(() => {
+                        const vs = document.getElementById('venueSelect');
+                        vs.value = "{{ old('venue_id') }}";
+                        vs.dispatchEvent(new Event('change'));
+                    }, 50);
                 @endif
             @endif
 
-            // ── Phone: block non-numeric ──────────────────────────────────────────
             const phoneInput = document.getElementById('phoneInput');
-            phoneInput.addEventListener('input', function() {
-                this.value = this.value.replace(/[^0-9\+\-\s\(\)]/g, '');
-            });
-            phoneInput.addEventListener('keypress', function(e) {
-                if (!/[0-9\+\-\s\(\)]/.test(e.key)) e.preventDefault();
-            });
-
-            // ── Form submit: SweetAlert confirm ───────────────────────────────────
-            let confirmed = false;
-
-            document.getElementById('venueEventForm').addEventListener('submit', function(e) {
-                if (confirmed) return;
-                e.preventDefault();
-
-                const phone = phoneInput.value.trim();
-                if (!phone || !/^[0-9\+\-\s\(\)]+$/.test(phone)) {
-                    swalOcd.fire({
-                        icon: 'error',
-                        title: 'Invalid Phone Number',
-                        text: 'Telephone number must contain numbers only.',
-                    });
-                    phoneInput.focus();
-                    return;
-                }
-
-                swalOcd.fire({
-                    icon: 'question',
-                    title: 'Submit Booking?',
-                    html: 'Please confirm that all details are correct before submitting.',
-                    showCancelButton: true,
-                    confirmButtonText: '<i class="bi bi-send-fill me-1"></i> Yes, Submit',
-                    cancelButtonText: 'Review Again',
-                    reverseButtons: true,
-                }).then(result => {
-                    if (result.isConfirmed) {
-                        confirmed = true;
-                        const btn = document.getElementById('submitBtn');
-                        btn.disabled = true;
-                        btn.innerHTML =
-                            '<span class="spinner-border spinner-border-sm me-1"></span> Submitting…';
-                        document.getElementById('venueEventForm').submit();
-                    }
+            if (phoneInput) {
+                phoneInput.addEventListener('input', function() {
+                    this.value = this.value.replace(/[^0-9\+\-\s\(\)]/g, '');
                 });
-            });
+                phoneInput.addEventListener('keypress', function(e) {
+                    if (!/[0-9\+\-\s\(\)]/.test(e.key)) e.preventDefault();
+                });
+            }
 
-            // ── Flash: validation errors ──────────────────────────────────────────
+            let confirmed = false;
+            const form = document.getElementById('venueEventForm');
+            if (form) {
+                form.addEventListener('submit', function(e) {
+                    if (confirmed) return;
+                    e.preventDefault();
+
+                    const phone = phoneInput.value.trim();
+                    if (!phone || !/^[0-9\+\-\s\(\)]+$/.test(phone)) {
+                        swalOcd.fire({
+                            icon: 'error',
+                            title: 'Invalid Phone Number',
+                            text: 'Telephone number must contain numbers only.',
+                        });
+                        phoneInput.focus();
+                        return;
+                    }
+
+                    const maxCap = parseInt(participantsInput.getAttribute('max'));
+                    const currentVal = parseInt(participantsInput.value);
+                    if (maxCap && currentVal > maxCap) {
+                        swalOcd.fire({
+                            icon: 'error',
+                            title: 'Capacity Exceeded',
+                            text: `The selected venue can only accommodate up to ${maxCap} participants.`,
+                        });
+                        participantsInput.focus();
+                        return;
+                    }
+
+                    swalOcd.fire({
+                        icon: 'question',
+                        title: 'Submit Booking?',
+                        html: 'Please confirm that all details are correct before submitting.',
+                        showCancelButton: true,
+                        confirmButtonText: '<i class="bi bi-send-fill me-1"></i> Yes, Submit',
+                        cancelButtonText: 'Review Again',
+                        reverseButtons: true,
+                    }).then(result => {
+                        if (result.isConfirmed) {
+                            confirmed = true;
+                            const btn = document.getElementById('submitBtn');
+                            btn.disabled = true;
+                            btn.innerHTML =
+                                '<span class="spinner-border spinner-border-sm me-1"></span> Submitting…';
+                            form.submit();
+                        }
+                    });
+                });
+            }
+
             @if ($errors->any())
                 swalOcd.fire({
                     icon: 'error',
@@ -702,7 +805,6 @@
                 });
             @endif
 
-            // ── Flash: success ────────────────────────────────────────────────────
             @if (session('success'))
                 swalOcd.fire({
                     icon: 'success',
@@ -714,7 +816,6 @@
                 });
             @endif
 
-            // ── Flash: error ──────────────────────────────────────────────────────
             @if (session('error'))
                 swalOcd.fire({
                     icon: 'error',

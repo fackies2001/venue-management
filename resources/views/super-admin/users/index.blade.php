@@ -40,7 +40,7 @@
                             <th>Name</th>
                             <th>Email</th>
                             <th>Role</th>
-                            <th>Department</th>
+                            <th>Division</th>
                             <th>Status</th>
                             <th>Registered</th>
                             <th class="text-center">Actions</th>
@@ -61,17 +61,18 @@
                                     @php
                                         $roleColors = [
                                             \App\Models\User::ROLE_SUPER_ADMIN => 'danger',
-                                            \App\Models\User::ROLE_NDRRMOC => 'warning',
-                                            \App\Models\User::ROLE_NAB => 'info',
+                                            \App\Models\User::ROLE_ADMIN => 'warning',
                                             \App\Models\User::ROLE_USER => 'secondary',
                                         ];
                                         $color = $roleColors[$user->role] ?? 'secondary';
                                     @endphp
                                     <span class="badge bg-{{ $color }}">{{ strtoupper($user->role) }}</span>
                                 </td>
-                                <td>{{ $user->department ?? '—' }}</td>
-                                
-                                {{-- UPDATED STATUS COLUMN --}}
+
+                                {{-- UPDATED: Now points to the division name --}}
+                                <td>{{ $user->division->name ?? '—' }}</td>
+
+                                {{-- STATUS COLUMN --}}
                                 <td>
                                     @if (!$user->is_active)
                                         <span class="badge badge-rejected">Deactivated</span>
@@ -81,7 +82,7 @@
                                         <span class="badge badge-approved">Active</span>
                                     @endif
                                 </td>
-                                {{-- END UPDATED STATUS COLUMN --}}
+                                {{-- END STATUS COLUMN --}}
 
                                 <td data-order="{{ $user->created_at->timestamp }}">
                                     {{ $user->created_at->format('M d, Y') }}
@@ -124,15 +125,16 @@
                                         @endif
 
                                         {{-- Delete --}}
-                                        <form method="POST" id="deleteForm{{ $user->id }}"
-                                            action="{{ route('super-admin.users.destroy', $user) }}">
-                                            @csrf @method('DELETE')
-                                            <button type="button" class="btn btn-sm btn-outline-danger px-2"
-                                                onclick="confirmDelete({{ $user->id }}, '{{ addslashes($user->name) }}')">
-                                                <i class="bi bi-trash me-1"></i>Delete
-                                            </button>
-                                        </form>
-
+                                        @if ($user->role !== \App\Models\User::ROLE_SUPER_ADMIN)
+                                            <form method="POST" id="deleteForm{{ $user->id }}"
+                                                action="{{ route('super-admin.users.destroy', $user) }}">
+                                                @csrf @method('DELETE')
+                                                <button type="button" class="btn btn-sm btn-outline-danger px-2"
+                                                    onclick="confirmDelete({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                                                    <i class="bi bi-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             </tr>

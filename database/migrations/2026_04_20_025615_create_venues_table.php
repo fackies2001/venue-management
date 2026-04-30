@@ -6,13 +6,15 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    public function up(): void
+    public function up()
     {
         Schema::create('venues', function (Blueprint $table) {
             $table->id();
+            $table->foreignId('building_id')->constrained('buildings')->cascadeOnDelete();
             $table->string('name');
-            $table->string('location');
-            $table->unsignedInteger('capacity');
+            $table->string('color')->nullable();
+            $table->string('location')->nullable();
+            $table->integer('capacity')->nullable();
             $table->text('description')->nullable();
             $table->json('amenities')->nullable();
             $table->boolean('is_active')->default(true);

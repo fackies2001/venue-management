@@ -126,16 +126,15 @@
 @section('content')
 
     @php
+        // UPDATED ROLES TO MATCH YOUR NEW USER MODEL
         $roleColors = [
             \App\Models\User::ROLE_SUPER_ADMIN => 'danger',
-            \App\Models\User::ROLE_NDRRMOC => 'warning',
-            \App\Models\User::ROLE_NAB => 'info',
+            \App\Models\User::ROLE_ADMIN => 'warning',
             \App\Models\User::ROLE_USER => 'secondary',
         ];
         $roleLabels = [
             \App\Models\User::ROLE_SUPER_ADMIN => 'Super Admin',
-            \App\Models\User::ROLE_NDRRMOC => 'NDRRMOC',
-            \App\Models\User::ROLE_NAB => 'NAB',
+            \App\Models\User::ROLE_ADMIN => 'Admin',
             \App\Models\User::ROLE_USER => 'User',
         ];
         $color = $roleColors[$user->role] ?? 'secondary';
@@ -205,7 +204,7 @@
                         </div>
                         <div>
                             <div class="section-title">Account Information</div>
-                            <div class="section-sub">Update name, email, role, and contact details</div>
+                            <div class="section-sub">Update name, email, role, and division</div>
                         </div>
                     </div>
 
@@ -241,12 +240,9 @@
                                     <option value="{{ \App\Models\User::ROLE_USER }}"
                                         {{ old('role', $user->role) == \App\Models\User::ROLE_USER ? 'selected' : '' }}>
                                         User</option>
-                                    <option value="{{ \App\Models\User::ROLE_NDRRMOC }}"
-                                        {{ old('role', $user->role) == \App\Models\User::ROLE_NDRRMOC ? 'selected' : '' }}>
-                                        NDRRMOC</option>
-                                    <option value="{{ \App\Models\User::ROLE_NAB }}"
-                                        {{ old('role', $user->role) == \App\Models\User::ROLE_NAB ? 'selected' : '' }}>NAB
-                                    </option>
+                                    <option value="{{ \App\Models\User::ROLE_ADMIN }}"
+                                        {{ old('role', $user->role) == \App\Models\User::ROLE_ADMIN ? 'selected' : '' }}>
+                                        Admin</option>
                                     <option value="{{ \App\Models\User::ROLE_SUPER_ADMIN }}"
                                         {{ old('role', $user->role) == \App\Models\User::ROLE_SUPER_ADMIN ? 'selected' : '' }}>
                                         Super Admin</option>
@@ -257,11 +253,17 @@
                             </div>
 
                             <div class="col-md-4">
-                                <label class="form-label">Department</label>
-                                <input type="text" name="department"
-                                    class="form-control @error('department') is-invalid @enderror"
-                                    value="{{ old('department', $user->department) }}" placeholder="e.g. ICTS, Operations">
-                                @error('department')
+                                <label class="form-label">Division / Service</label>
+                                <select name="division_id" class="form-select @error('division_id') is-invalid @enderror">
+                                    <option value="">-- No Division --</option>
+                                    @foreach (\App\Models\Division::orderBy('name')->get() as $div)
+                                        <option value="{{ $div->id }}"
+                                            {{ old('division_id', $user->division_id) == $div->id ? 'selected' : '' }}>
+                                            {{ $div->name }}
+                                        </option>
+                                    @endforeach
+                                </select>
+                                @error('division_id')
                                     <div class="invalid-feedback">{{ $message }}</div>
                                 @enderror
                             </div>
@@ -332,11 +334,11 @@
                     <form method="POST" action="{{ route('super-admin.users.update', $user) }}">
                         @csrf
                         @method('PUT')
-                        {{-- Pass through required fields --}}
+                        {{-- Pass through required fields so validation doesn't fail --}}
                         <input type="hidden" name="name" value="{{ $user->name }}">
                         <input type="hidden" name="email" value="{{ $user->email }}">
                         <input type="hidden" name="role" value="{{ $user->role }}">
-                        <input type="hidden" name="department" value="{{ $user->department }}">
+                        <input type="hidden" name="division_id" value="{{ $user->division_id }}">
                         <input type="hidden" name="contact_number" value="{{ $user->contact_number }}">
                         <input type="hidden" name="is_active" value="{{ $user->is_active ? '1' : '0' }}">
                         <input type="hidden" name="password_only" value="1">

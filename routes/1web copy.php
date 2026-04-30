@@ -12,6 +12,7 @@ use App\Http\Controllers\HistoryController;
 use App\Http\Controllers\ProfileController;
 use App\Http\Controllers\Admin\AdminBookingController;
 use App\Http\Controllers\Admin\UserManagementController;
+use App\Http\Controllers\Admin\DivisionController;
 
 // ── Email Verification Routes ─────────────────────────────────
 
@@ -34,7 +35,7 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
         $user->markEmailAsVerified();
         event(new Verified($user));
 
-        // ✅ Directly activate — hindi na dependent sa listener
+        // Directly activate
         $user->update(['is_active' => true]);
     }
 
@@ -49,7 +50,6 @@ Route::post('/email/verification-notification', function (Request $request) {
 
 
 // ── Auth Routes ───────────────────────────────────────────────
-
 Route::get('/', fn() => redirect()->route('login'));
 Route::get('/login',  [LoginController::class, 'showLoginForm'])->name('login');
 Route::post('/login', [LoginController::class, 'login']);
@@ -83,31 +83,9 @@ Route::middleware(['auth', 'verified', 'role:user'])->prefix('dashboard')->name(
     Route::get('/history', [HistoryController::class, 'index'])->name('history');
 });
 
-
-// ── NDRRMOC Admin Routes ──────────────────────────────────────
-Route::middleware(['auth', 'verified', 'role:ndrrmoc_admin'])->prefix('ndrrmoc')->name('ndrrmoc.')->group(function () {
-    Route::get('/', fn() => redirect()->route('ndrrmoc.bookings.index'))->name('dashboard');
-    Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
-    Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
-    Route::get('/bookings',                          [AdminBookingController::class, 'index'])->name('bookings.index');
-    Route::get('/bookings/create',                   [VenueBookingController::class, 'create'])->name('bookings.create');
-    Route::post('/bookings',                         [VenueBookingController::class, 'store'])->name('bookings.store');
-    Route::get('/bookings/{booking}',                [AdminBookingController::class, 'show'])->name('bookings.show');
-    Route::get('/bookings/{booking}/edit',           [AdminBookingController::class, 'edit'])->name('bookings.edit');
-    Route::put('/bookings/{booking}',                [AdminBookingController::class, 'update'])->name('bookings.update');
-    Route::delete('/bookings/{booking}',             [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
-    Route::patch('/bookings/{booking}/approve',      [AdminBookingController::class, 'approve'])->name('bookings.approve');
-    Route::patch('/bookings/{booking}/reject',       [AdminBookingController::class, 'reject'])->name('bookings.reject');
-    Route::patch('/bookings/{booking}/cancel',       [VenueBookingController::class, 'cancel'])->name('bookings.cancel');
-    Route::get('/history', [AdminBookingController::class, 'history'])->name('history');
-});
-
-
-
-// ── NAB Admin Routes ──────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'role:nab_admin'])->prefix('nab')->name('nab.')->group(function () {
-    Route::get('/', fn() => redirect()->route('nab.bookings.index'))->name('dashboard');
-    Route::get('/', fn() => redirect()->route('nab.bookings.index'))->name('dashboard');
+// ── Admin Routes ──────────────────────────────────────────────
+Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+    Route::get('/', fn() => redirect()->route('admin.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
     Route::get('/bookings',                       [AdminBookingController::class, 'index'])->name('bookings.index');
@@ -149,4 +127,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin
     Route::patch('/users/{user}/activate',     [UserManagementController::class, 'activate'])->name('users.activate');
     Route::patch('/users/{user}/deactivate',   [UserManagementController::class, 'deactivate'])->name('users.deactivate');
     Route::delete('/users/{user}',             [UserManagementController::class, 'destroy'])->name('users.destroy');
+
+    // Division management
+    Route::resource('divisions', DivisionController::class)->except(['show', 'create', 'edit']);
 });

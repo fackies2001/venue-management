@@ -5,9 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
+use App\Models\ActivityLog; // ✅ ADDED: ActivityLog model
 use App\Models\Booking;
+use App\Models\Building;
 use App\Models\VenueEvent;
 use App\Models\Venue;
+use App\Models\Division;      // ✅ KEPT: Division model fix
 use Illuminate\Http\Request;
 use App\Mail\BookingApproved;
 use App\Mail\BookingCancelled;
@@ -39,25 +42,19 @@ class AdminBookingController extends Controller
         return view('admin.bookings.show', compact('booking'));
     }
 
-    // ✅ DINAGDAG: Edit View para sa Admin
     public function edit(Booking $booking)
     {
-        $venues = Venue::active()->get();
-        $buildings = Venue::active()
-            ->whereNotNull('building')
-            ->distinct()
-            ->orderBy('building')
-            ->pluck('building');
+        $venues    = Venue::active()->get();
+        $buildings = Building::active()->orderBy('name')->get();
 
-        return view('admin.bookings.edit', compact('booking', 'venues', 'buildings'));
+        // ✅ KEPT: Kinukuha na ngayon ang Divisions galing sa database
+        $divisions = Division::orderBy('name')->get();
+
+        return view('admin.bookings.edit', compact('booking', 'venues', 'buildings', 'divisions'));
     }
 
-    // ✅ DINAGDAG: Update logic para sa Admin
     public function update(Request $request, Booking $booking)
     {
-
-
-
         $validated = $request->validate([
             'venue_id'           => ['required', 'exists:venues,id'],
             'event_title'        => ['required', 'string', 'max:255'],
@@ -66,7 +63,6 @@ class AdminBookingController extends Controller
             'start_time'         => ['required', 'date_format:H:i'],
             'end_time'           => ['required', 'date_format:H:i', 'after:start_time'],
             'expected_attendees' => ['required', 'integer', 'min:1'],
-            'building'           => ['required', 'string'],
             'booker_name'        => ['required', 'string', 'max:255'],
             'service'            => ['required', 'string', 'max:255'],
             'division'           => ['required', 'string', 'max:255'],
@@ -99,7 +95,15 @@ class AdminBookingController extends Controller
 
         $booking->update($validated);
 
-        // ✅ Kung approved na, i-update din yung naka-reflect sa Calendar (VenueEvent)
+        // ── Log ──────────────────────────────────────────────
+        ActivityLog::record(
+            'updated',
+            $booking,
+            Auth::user()->name . ' updated booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
+
+        // If already approved, update the reflected VenueEvent on the Calendar
         if ($booking->status === Booking::STATUS_APPROVED) {
             $booking->venueEvent()->update([
                 'venue_id'   => $booking->venue_id,
@@ -111,27 +115,33 @@ class AdminBookingController extends Controller
         }
 
         $prefix = match (auth()->user()->role) {
-            'ndrrmoc_admin' => 'ndrrmoc',
-            'nab_admin' => 'nab',
+            'admin'       => 'admin',
             'super_admin' => 'super-admin',
-            default => 'user',
+            default       => 'user',
         };
 
         return redirect()->route($prefix . '.bookings.index')
             ->with('success', 'Booking updated successfully.');
     }
 
-    // ✅ DINAGDAG: Destroy logic para sa Admin
     public function destroy(Booking $booking)
     {
+        // ── Log BEFORE delete so we still have the data ───────
+        ActivityLog::record(
+            'deleted',
+            $booking,
+            Auth::user()->name . ' deleted booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
+
         if ($booking->attachment_path) {
             Storage::disk('public')->delete($booking->attachment_path);
         }
 
-        $booking->venueEvent()->delete(); // Tanggalin din sa Calendar kung meron
-        $booking->delete();
+        $booking->venueEvent()->delete();
+        $booking->delete(); // Soft deletes the booking
 
-        return back()->with('success', 'Booking completely deleted.');
+        return back()->with('success', 'Booking deleted and archived.');
     }
 
     public function approve(Request $request, Booking $booking)
@@ -152,10 +162,18 @@ class AdminBookingController extends Controller
             'booking_id' => $booking->id,
             'title'      => $booking->event_title,
             'event_date' => $booking->event_date,
-            'start_time' => $booking->event_date->toDateString() . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i:s'),
-            'end_time'   => $booking->event_date->toDateString() . ' ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i:s'),
+            'start_time' => \Carbon\Carbon::parse($booking->event_date)->toDateString() . ' ' . \Carbon\Carbon::parse($booking->start_time)->format('H:i:s'),
+            'end_time'   => \Carbon\Carbon::parse($booking->event_date)->toDateString() . ' ' . \Carbon\Carbon::parse($booking->end_time)->format('H:i:s'),
             'created_by' => Auth::id(),
         ]);
+
+        // ── Log ──────────────────────────────────────────────
+        ActivityLog::record(
+            'approved',
+            $booking,
+            Auth::user()->name . ' approved booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
 
         Mail::to($booking->user->email)->send(new BookingApproved($booking));
 
@@ -174,6 +192,14 @@ class AdminBookingController extends Controller
             'approved_by'   => Auth::id(),
             'approved_at'   => now(),
         ]);
+
+        // ── Log ──────────────────────────────────────────────
+        ActivityLog::record(
+            'rejected',
+            $booking,
+            Auth::user()->name . ' rejected booking "' . $booking->event_title . '"',
+            array_merge($booking->toSnapshot(), ['reason' => $request->input('admin_remarks')])
+        );
 
         Mail::to($booking->user->email)->send(new BookingRejected($booking));
 
