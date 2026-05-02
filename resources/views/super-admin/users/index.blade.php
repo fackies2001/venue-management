@@ -22,6 +22,63 @@
         div.dataTables_wrapper div.dataTables_filter input {
             margin-left: .5rem;
         }
+
+        #usersTable {
+            border-collapse: separate !important;
+            border-spacing: 0 8px !important;
+            width: 100% !important;
+        }
+
+        #usersTable thead th {
+            background-color: #212529 !important;
+            color: white !important;
+            padding: 15px 10px !important;
+            border: none !important;
+        }
+
+        #usersTable tbody td {
+            padding: 12px 10px !important;
+            background-color: #ffffff;
+            border-top: 1px solid #dee2e6 !important;
+            border-bottom: 1px solid #dee2e6 !important;
+            vertical-align: middle !important;
+        }
+
+        .col-id {
+            width: 50px;
+        }
+
+        .col-name {
+            width: 200px;
+        }
+
+        .col-email {
+            width: 220px;
+        }
+
+        .col-role {
+            width: 120px;
+        }
+
+        .col-div {
+            width: 120px;
+        }
+
+        .col-status {
+            width: 100px;
+        }
+
+        .col-actions {
+            width: 280px;
+        }
+
+        .btn-group-gap {
+            display: flex;
+            gap: 6px;
+            justify-content: center;
+            flex-wrap: nowrap;
+
+        }
     </style>
 @endpush
 
@@ -36,14 +93,13 @@
                 <table id="usersTable" class="table table-hover align-middle w-100 mb-0">
                     <thead>
                         <tr>
-                            <th>#</th>
-                            <th>Name</th>
-                            <th>Email</th>
-                            <th>Role</th>
-                            <th>Division</th>
-                            <th>Status</th>
-                            <th>Registered</th>
-                            <th class="text-center">Actions</th>
+                            <th class="text-center col-id">#</th>
+                            <th class="col-name text-start">Name</th>
+                            <th class="col-email text-start">Email</th>
+                            <th class="text-center col-role">Role</th>
+                            <th class="text-center col-div">Division</th>
+                            <th class="text-center col-status">Status</th>
+                            <th class="text-center col-actions">Actions</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -72,21 +128,23 @@
                                 {{-- UPDATED: Now points to the division name --}}
                                 <td>{{ $user->division->name ?? '—' }}</td>
 
-                                {{-- STATUS COLUMN --}}
-                                <td>
+                                {{-- PALITAN YUNG DATI NG GANITO --}}
+                                <td class="text-center">
                                     @if (!$user->is_active)
-                                        <span class="badge badge-rejected">Deactivated</span>
+                                        <span class="badge bg-danger">Deactivated</span>
                                     @elseif (is_null($user->email_verified_at))
                                         <span class="badge bg-secondary">Unverified</span>
                                     @else
-                                        <span class="badge badge-approved">Active</span>
+                                        {{-- Ginamit natin ang bg-success para siguradong litaw ang kulay --}}
+                                        <span class="badge bg-success">Active</span>
                                     @endif
                                 </td>
                                 {{-- END STATUS COLUMN --}}
 
-                                <td data-order="{{ $user->created_at->timestamp }}">
+                                {{-- <td data-order="{{ $user->created_at->timestamp }}">
                                     {{ $user->created_at->format('M d, Y') }}
-                                </td>
+                                </td> --}}
+
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1 flex-wrap">
 
@@ -164,7 +222,7 @@
                 lengthMenu: [10, 25, 50, 100],
                 columnDefs: [{
                     orderable: false,
-                    targets: 7
+                    targets: 6
                 }],
                 language: {
                     search: 'Search:',

@@ -79,7 +79,7 @@
                     <tbody>
                         @forelse($bookings as $booking)
                             <tr>
-                                <td class="text-muted small">{{ $booking->id }}</td>
+                                <td class="text-muted small text-center">{{ $booking->id }}</td>
                                 <td>
                                     <div class="fw-semibold small">{{ $booking->user->name }}</div>
                                     <div class="text-muted" style="font-size:.75rem;">
@@ -96,15 +96,17 @@
                                     @endif
                                 </td>
 
-                                <td data-order="{{ $booking->event_date->format('Y-m-d') }}">
+                                <td class="text-center" data-order="{{ $booking->event_date->format('Y-m-d') }}">
                                     {{ $booking->event_date->format('M d, Y') }}
                                 </td>
-                                <td class="small text-muted">
+
+                                <td class="small text-muted text-center">
                                     {{ \Carbon\Carbon::parse($booking->start_time)->format('h:i A') }}
                                     – {{ \Carbon\Carbon::parse($booking->end_time)->format('h:i A') }}
                                 </td>
-                                <td>{{ $booking->expected_attendees }}</td>
-                                <td>
+
+                                <td class="text-center">{{ $booking->expected_attendees }}</td>
+                                <td class="text-center">
                                     <span class="badge {{ $booking->statusBadgeClass() }} px-2 py-1">
                                         {{ ucfirst($booking->status) }}
                                     </span>
@@ -135,14 +137,28 @@
                                             </button>
                                         @endif
 
-                                        <form method="POST" action="{{ route($prefix . '.bookings.destroy', $booking) }}"
-                                            class="d-inline"
-                                            onsubmit="return confirm('Completely delete this booking? This cannot be undone.')">
-                                            @csrf @method('DELETE')
-                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                <i class="bi bi-trash me-1"></i>Delete
-                                            </button>
-                                        </form>
+                                        {{-- ✅ CHANGED: Delete → Archive (soft delete) for admin role --}}
+                                        @if (auth()->user()->role === 'admin')
+                                            <form method="POST"
+                                                action="{{ route($prefix . '.bookings.destroy', $booking) }}"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Archive this booking? It will be moved to the archive.')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
+                                                    <i class="bi bi-archive me-1"></i>Archive
+                                                </button>
+                                            </form>
+                                        @else
+                                            <form method="POST"
+                                                action="{{ route($prefix . '.bookings.destroy', $booking) }}"
+                                                class="d-inline"
+                                                onsubmit="return confirm('Completely delete this booking? This cannot be undone.')">
+                                                @csrf @method('DELETE')
+                                                <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                    <i class="bi bi-trash me-1"></i>Delete
+                                                </button>
+                                            </form>
+                                        @endif
                                     </div>
                                 </td>
                             @empty

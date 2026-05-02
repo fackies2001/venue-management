@@ -155,121 +155,136 @@
         </div>
     </div>
 
-    {{-- ══ Booking Detail Modal ══ --}}
+    {{-- ══ Booking Detail Modal — REDESIGNED ══ --}}
     <div class="modal fade" id="detailModal" tabindex="-1">
-        <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-                <div class="modal-header" style="background:var(--ocd-blue);color:#fff;">
-                    <h5 class="modal-title">
-                        <i class="bi bi-calendar-event me-2"></i>
-                        Booking Details — <span id="modalEventTitle"></span>
-                    </h5>
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
+
+                {{-- Header --}}
+                <div class="modal-header px-4 py-3" style="background:var(--ocd-dark, #0a1144); border:none;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="background:rgba(232,119,34,0.2); border-radius:8px; padding:6px 10px;">
+                            <i class="bi bi-calendar-event" style="color:#e87722; font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 text-white fw-bold">Booking Details</h6>
+                            <small style="color:rgba(255,255,255,0.55);" id="modalEventTitle"></small>
+                        </div>
+                    </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body px-4 py-3">
+
+                {{-- Status Banner --}}
+                <div class="px-4 py-2 d-flex align-items-center gap-2"
+                    style="background:#f0f4ff; border-bottom:1px solid #e2e8f0;">
+                    <span
+                        style="font-size:.72rem; font-weight:700; color:#6c757d; text-transform:uppercase; letter-spacing:.04em;">STATUS</span>
+                    <span id="dStatus" class="ms-2"></span>
+                    <span class="ms-auto text-muted" style="font-size:.78rem;">
+                        <i class="bi bi-clock me-1"></i>Processed: <span id="dProcessed"></span>
+                    </span>
+                </div>
+
+                {{-- Body --}}
+                <div class="modal-body px-4 py-3" style="background:#fff;">
                     <div class="row g-3">
-                        {{-- Left column --}}
+
+                        {{-- LEFT: Event Info --}}
                         <div class="col-md-6">
-                            <p class="fw-bold mb-2"
-                                style="color:var(--ocd-blue);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
-                                <i class="bi bi-calendar3 me-1"></i> Event Info
-                            </p>
-                            <div class="detail-row">
-                                <div class="detail-label">Event Title</div>
-                                <div class="detail-value" id="dEventTitle"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Venue</div>
-                                <div class="detail-value" id="dVenue"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Event Date</div>
-                                <div class="detail-value" id="dDate"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Time</div>
-                                <div class="detail-value" id="dTime"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Agenda / Topic</div>
-                                <div class="detail-value" id="dAgenda"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Participants</div>
-                                <div class="detail-value" id="dParticipants"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Remarks</div>
-                                <div class="detail-value" id="dRemarks"></div>
-                            </div>
-
-                            <div class="detail-row">
-                                <div class="detail-label">Attachment</div>
-                                <div class="detail-value" id="dAttachment"></div>
+                            <div class="p-3 rounded-3 h-100" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                <p class="fw-bold mb-3"
+                                    style="color:var(--ocd-blue,#1a3c72); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em;">
+                                    <i class="bi bi-calendar3 me-1"></i>Event Info
+                                </p>
+                                <div class="detail-row">
+                                    <div class="detail-label">Event Title</div>
+                                    <div class="detail-value" id="dEventTitle"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Venue</div>
+                                    <div class="detail-value" id="dVenue"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Event Date</div>
+                                    <div class="detail-value" id="dDate"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Time</div>
+                                    <div class="detail-value" id="dTime"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Agenda / Topic</div>
+                                    <div class="detail-value" id="dAgenda"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Participants</div>
+                                    <div class="detail-value" id="dParticipants"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Remarks</div>
+                                    <div class="detail-value" id="dRemarks"></div>
+                                </div>
+                                <div class="detail-row" style="border-bottom:none;">
+                                    <div class="detail-label">Attachment</div>
+                                    <div class="detail-value" id="dAttachment"></div>
+                                </div>
                             </div>
                         </div>
 
-                        {{-- Right column --}}
-                        <div class="col-md-6">
-                            <p class="fw-bold mb-2"
-                                style="color:var(--ocd-blue);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
-                                <i class="bi bi-person me-1"></i> Requester Info
-                            </p>
-                            <div class="detail-row">
-                                <div class="detail-label">Name</div>
-                                <div class="detail-value" id="dBooker"></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Department</div>
-                                <div class="detail-value" id="dDepartment"></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Email</div>
-                                <div class="detail-value" id="dEmail"></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Phone</div>
-                                <div class="detail-value" id="dPhone"></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Service</div>
-                                <div class="detail-value" id="dService"></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Division</div>
-                                <div class="detail-value" id="dDivision"></div>
+                        {{-- RIGHT: Requester + Processing Info --}}
+                        <div class="col-md-6 d-flex flex-column gap-3">
+
+                            {{-- Requester Info --}}
+                            <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                <p class="fw-bold mb-3"
+                                    style="color:var(--ocd-blue,#1a3c72); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em;">
+                                    <i class="bi bi-person me-1"></i>Requester Info
+                                </p>
+                                <div class="detail-row">
+                                    <div class="detail-label">Name</div>
+                                    <div class="detail-value" id="dBooker"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Email</div>
+                                    <div class="detail-value" id="dEmail"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Phone</div>
+                                    <div class="detail-value" id="dPhone"></div>
+                                </div>
+                                <div class="detail-row">
+                                    <div class="detail-label">Service</div>
+                                    <div class="detail-value" id="dService"></div>
+                                </div>
+                                <div class="detail-row" style="border-bottom:none;">
+                                    <div class="detail-label">Division</div>
+                                    <div class="detail-value" id="dDivision"></div>
+                                </div>
                             </div>
 
-                            <p class="fw-bold mb-2 mt-3"
-                                style="color:var(--ocd-blue);font-size:.8rem;text-transform:uppercase;letter-spacing:.05em;">
-                                <i class="bi bi-check-circle me-1"></i> Processing Info
-                            </p>
-                            <div class="detail-row">
-                                <div class="detail-label">Status</div>
-                                <div class="detail-value" id="dStatus"></div>
+                            {{-- Processing Info --}}
+                            <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #e9ecef;">
+                                <p class="fw-bold mb-3"
+                                    style="color:var(--ocd-blue,#1a3c72); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em;">
+                                    <i class="bi bi-check-circle me-1"></i>Processing Info
+                                </p>
+                                <div class="detail-row" style="border-bottom:none;">
+                                    <div class="detail-label">Admin Remarks</div>
+                                    <div class="detail-value" id="dAdminRemarks"></div>
+                                </div>
                             </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Processed On</div>
-                                <div class="detail-value" id="dProcessed"></div>
-                            </div>
-                            <div class="detail-row">
-                                <div class="detail-label">Admin Remarks</div>
-                                <div class="detail-value" id="dAdminRemarks"></div>
-                            </div>
+
                         </div>
                     </div>
                 </div>
-                <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">
-                        <i class="bi bi-x-circle me-1"></i> Close
+
+                {{-- Footer --}}
+                <div class="modal-footer px-4 py-2" style="background:#f8f9fa; border-top:1px solid #e9ecef;">
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
@@ -352,7 +367,6 @@
             document.getElementById('dParticipants').textContent = b.expected_attendees;
             document.getElementById('dRemarks').textContent = b.remarks;
             document.getElementById('dBooker').textContent = b.booker_name;
-            document.getElementById('dDepartment').textContent = b.department;
             document.getElementById('dEmail').textContent = b.email;
             document.getElementById('dPhone').textContent = b.phone;
             document.getElementById('dService').textContent = b.service;

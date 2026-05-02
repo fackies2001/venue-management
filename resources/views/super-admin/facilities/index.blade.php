@@ -7,6 +7,61 @@
     {{-- DataTables & SweetAlert2 CSS --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+    <style>
+        #buildingsTable thead th,
+        #venuesTable thead th {
+            background-color: #212529 !important;
+            color: #fff !important;
+            border-color: #373b3e !important;
+        }
+
+        div.dataTables_wrapper div.dataTables_length label,
+        div.dataTables_wrapper div.dataTables_filter label,
+        div.dataTables_wrapper div.dataTables_info {
+            font-size: .875rem;
+            color: #6c757d;
+        }
+
+        div.dataTables_wrapper div.dataTables_filter input {
+            margin-left: .5rem;
+        }
+
+
+
+        #buildingsTable {
+            width: 100% !important;
+        }
+
+
+        #buildingsTable th:nth-child(1),
+        #buildingsTable td:nth-child(1) {
+            width: 60%;
+        }
+
+
+        #buildingsTable th:nth-child(2),
+        #buildingsTable td:nth-child(2) {
+            width: 15%;
+            text-align: center;
+        }
+
+
+        #buildingsTable th:nth-child(3),
+        #buildingsTable td:nth-child(3) {
+            width: 25%;
+            text-align: center;
+
+            vertical-align: middle;
+        }
+
+
+        #buildingsTable thead th:nth-child(3) {
+            padding-left: 30px !important;
+
+
+
+        }
+    </style>
 @endpush
 
 @section('content')
@@ -18,129 +73,135 @@
     {{-- NOTE: HTML Alerts have been REMOVED here to prevent the duplicate notification bug. 
          Notifications are now handled by the sleek SweetAlert Toasts at the bottom of the script. --}}
 
-    <div class="row g-3">
-        {{-- ==============================
-                  BUILDINGS TABLE
-        =============================== --}}
-        <div class="col-xl-5">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0 text-dark">Buildings</h5>
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                            data-bs-target="#addBuildingModal">
-                            <i class="bi bi-plus-lg me-1"></i>Add
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="buildingsTable" class="table table-hover align-middle mb-0 w-100">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Name</th>
-                                    <th>Status</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($buildings as $building)
-                                    <tr>
-                                        <td class="fw-semibold">{{ $building->name }}</td>
-                                        <td>
-                                            @if ($building->is_active)
-                                                <span class="badge bg-success px-2 py-1">Active</span>
-                                            @else
-                                                <span class="badge bg-danger px-2 py-1">Inactive</span>
-                                            @endif
-                                        </td>
-                                        <td>
-                                            <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                                <button class="btn btn-sm btn-outline-success py-0 px-2"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editBuildingModal{{ $building->id }}">
-                                                    <i class="bi bi-pencil me-1"></i>Edit
-                                                </button>
-                                                <form method="POST"
-                                                    action="{{ route('super-admin.buildings.destroy', $building) }}"
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Delete this building? All venues inside will be deleted too.')">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                        <i class="bi bi-trash me-1"></i>Delete
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            </div>
-        </div>
+    <div class="d-flex flex-column gap-3">
 
         {{-- ==============================
-                    VENUES TABLE
-        =============================== --}}
-        <div class="col-xl-7">
-            <div class="card h-100">
-                <div class="card-body">
-                    <div class="d-flex justify-content-between align-items-center mb-3">
-                        <h5 class="fw-bold mb-0 text-dark">Venues</h5>
-                        <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
-                            data-bs-target="#addVenueModal">
-                            <i class="bi bi-plus-lg me-1"></i>Add Venue
-                        </button>
-                    </div>
-                    <div class="table-responsive">
-                        <table id="venuesTable" class="table table-hover align-middle mb-0 w-100">
-                            <thead class="table-dark">
-                                <tr>
-                                    <th>Color</th>
-                                    <th>Venue Name</th>
-                                    <th>Room/Floor</th>
-                                    <th>Building</th>
-                                    <th>Capacity</th>
-                                    <th class="text-end">Action</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach ($venues as $venue)
-                                    <tr>
-                                        <td>
-                                            <span
-                                                style="display:inline-block;width:16px;height:16px;border-radius:4px;background:{{ $venue->color ?? '#6c757d' }};"></span>
-                                        </td>
-                                        <td class="fw-semibold">{{ $venue->name }}</td>
-                                        <td class="text-muted small">{{ $venue->room_floor ?? '—' }}</td>
-                                        <td>{{ $venue->building->name ?? 'N/A' }}</td>
-                                        <td>{{ $venue->capacity ?? 'N/A' }}</td>
-                                        <td>
-                                            <div class="d-flex justify-content-end gap-1 flex-wrap">
-                                                <button class="btn btn-sm btn-outline-success py-0 px-2"
-                                                    data-bs-toggle="modal"
-                                                    data-bs-target="#editVenueModal{{ $venue->id }}">
-                                                    <i class="bi bi-pencil me-1"></i>Edit
-                                                </button>
-                                                <form method="POST"
-                                                    action="{{ route('super-admin.venues.destroy', $venue) }}"
-                                                    class="d-inline"
-                                                    onsubmit="return confirm('Completely delete this venue? This cannot be undone.')">
-                                                    @csrf @method('DELETE')
-                                                    <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
-                                                        <i class="bi bi-trash me-1"></i>Delete
-                                                    </button>
-                                                </form>
-                                            </div>
-                                        </td>
-                                    </tr>
-                                @endforeach
-                            </tbody>
-                        </table>
-                    </div>
+              BUILDINGS TABLE
+    =============================== --}}
+        <div class="card">
+            <div class="card-body">
+                <div class="d-flex justify-content-between align-items-center mb-3">
+                    <h5 class="fw-bold mb-0 text-dark">Buildings</h5>
+                    <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal"
+                        data-bs-target="#addBuildingModal">
+                        <i class="bi bi-plus-lg me-1"></i>Add
+                    </button>
                 </div>
+                <table id="buildingsTable" class="table table-hover align-middle mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-start">Name</th>
+                            <th class="text-center">Status</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($buildings as $building)
+                            <tr>
+                                <!-- Column 1: Name -->
+                                <td class="text-start">{{ $building->name }}</td>
+
+                                <!-- Column 2: Status -->
+                                <td class="text-center">
+                                    <span class="badge bg-success">Active</span>
+                                </td>
+
+                                <!-- Column 3: Action (Dito natin gigitna) -->
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-outline-success py-0 px-2" data-bs-toggle="modal"
+                                            data-bs-target="#editBuildingModal{{ $building->id }}">
+                                            <i class="bi bi-pencil me-1"></i>Edit
+                                        </button>
+
+                                        <form method="POST"
+                                            action="{{ route('super-admin.buildings.destroy', $building) }}"
+                                            class="d-inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                <i class="bi bi-trash me-1"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
             </div>
         </div>
+    </div>
+
+    {{-- ==============================
+                VENUES TABLE
+    =============================== --}}
+    <div class="card">
+        <div class="card-body">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+                <h5 class="fw-bold mb-0 text-dark">Venues</h5>
+                <button class="btn btn-sm btn-outline-primary" data-bs-toggle="modal" data-bs-target="#addVenueModal">
+                    <i class="bi bi-plus-lg me-1"></i>Add Venue
+                </button>
+            </div>
+            <div class="table-responsive">
+                <table id="venuesTable" class="table table-hover align-middle mb-0 w-100">
+                    <thead>
+                        <tr>
+                            <th class="text-center">Color</th>
+                            <th class="text-start">Venue Name</th>
+                            <th class="text-start">Room/Floor</th>
+                            <th class="text-start">Building</th>
+                            <th class="text-center">Capacity</th>
+                            <th class="text-center">Action</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach ($venues as $venue)
+                            <tr>
+                                <!-- 1. Color -->
+                                <td class="text-center">
+                                    <div
+                                        style="width: 20px; height: 20px; background-color: {{ $venue->color }}; border-radius: 4px; margin: 0 auto;">
+                                    </div>
+                                </td>
+
+                                <!-- 2. Venue Name -->
+                                <td class="text-start fw-bold">{{ $venue->name }}</td>
+
+                                <!-- 3. Room/Floor -->
+                                <td class="text-start text-muted">{{ $venue->room_floor }}</td>
+
+                                <!-- 4. Building -->
+                                <td class="text-start text-muted">{{ $venue->building->name }}</td>
+
+                                <!-- 5. Capacity -->
+                                <td class="text-center">{{ $venue->capacity }}</td>
+
+                                <!-- 6. Action (Gitna rin gaya ng Building) -->
+                                <td class="text-center">
+                                    <div class="d-flex justify-content-center gap-2">
+                                        <button class="btn btn-sm btn-outline-success py-0 px-2" data-bs-toggle="modal"
+                                            data-bs-target="#editVenueModal{{ $venue->id }}">
+                                            <i class="bi bi-pencil me-1"></i>Edit
+                                        </button>
+
+                                        <form method="POST" action="{{ route('super-admin.venues.destroy', $venue) }}"
+                                            class="d-inline">
+                                            @csrf @method('DELETE')
+                                            <button type="submit" class="btn btn-sm btn-outline-danger py-0 px-2">
+                                                <i class="bi bi-trash me-1"></i>Delete
+                                            </button>
+                                        </form>
+                                    </div>
+                                </td>
+                            </tr>
+                        @endforeach
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
     </div>
 
     {{-- ==========================================
@@ -376,7 +437,6 @@
 @endsection
 
 @push('scripts')
-    {{-- Scripts for DataTables and SweetAlert --}}
     <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
@@ -385,16 +445,13 @@
     <script>
         $(document).ready(function() {
 
-            // ==========================================
-            // 1. DataTables Configuration
-            // ==========================================
             const dtConfig = {
                 destroy: true,
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 columnDefs: [{
                     orderable: false,
-                    targets: -1 // Disables sorting on the Action column
+                    targets: -1
                 }],
                 language: {
                     search: "Search:",
@@ -413,27 +470,30 @@
                 }
             };
 
-            // Initialize Buildings Table
             $('#buildingsTable').DataTable({
                 ...dtConfig,
                 order: [
                     [0, 'asc']
-                ] // Sort by Name
+                ],
+                columnDefs: [{
+                        orderable: true,
+                        targets: [0, 1]
+                    },
+                    {
+                        orderable: false,
+                        targets: [2]
+                    }
+                ]
             });
 
-            // Initialize Venues Table
             $('#venuesTable').DataTable({
                 ...dtConfig,
                 order: [
                     [3, 'asc'],
                     [1, 'asc']
-                ] // Sort by Building Name, then Venue Name
+                ]
             });
 
-
-            // ==========================================
-            // 2. SweetAlert2 Toast Notifications
-            // ==========================================
             const Toast = Swal.mixin({
                 toast: true,
                 position: 'top-end',
@@ -446,7 +506,6 @@
                 }
             });
 
-            // Fire Success Toast if session has success message
             @if (session('success'))
                 Toast.fire({
                     icon: 'success',
@@ -454,7 +513,6 @@
                 });
             @endif
 
-            // Fire Error Toast if session has error message
             @if (session('error'))
                 Toast.fire({
                     icon: 'error',

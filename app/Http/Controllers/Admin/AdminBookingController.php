@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ActivityLog; // ✅ ADDED: ActivityLog model
+use App\Models\ActivityLog; // ADDED: ActivityLog model
 use App\Models\Booking;
 use App\Models\Building;
 use App\Models\VenueEvent;
 use App\Models\Venue;
-use App\Models\Division;      // ✅ KEPT: Division model fix
+use App\Models\Division;      // KEPT: Division model fix
 use Illuminate\Http\Request;
 use App\Mail\BookingApproved;
 use App\Mail\BookingCancelled;
@@ -47,7 +47,7 @@ class AdminBookingController extends Controller
         $venues    = Venue::active()->get();
         $buildings = Building::active()->orderBy('name')->get();
 
-        // ✅ KEPT: Kinukuha na ngayon ang Divisions galing sa database
+        //  KEPT: Kinukuha na ngayon ang Divisions galing sa database
         $divisions = Division::orderBy('name')->get();
 
         return view('admin.bookings.edit', compact('booking', 'venues', 'buildings', 'divisions'));
@@ -95,11 +95,11 @@ class AdminBookingController extends Controller
 
         $booking->update($validated);
 
-        // ── Log ──────────────────────────────────────────────
+        //  CHANGED: 'deleted' → 'archived' for admin role
         ActivityLog::record(
-            'updated',
+            'archived',
             $booking,
-            Auth::user()->name . ' updated booking "' . $booking->event_title . '"',
+            Auth::user()->name . ' archived booking "' . $booking->event_title . '"',
             $booking->toSnapshot()
         );
 

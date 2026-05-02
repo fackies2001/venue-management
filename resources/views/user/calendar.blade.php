@@ -471,25 +471,25 @@
 
                             <div class="mb-2">
                                 <label class="form-label">Service <span class="text-danger">*</span></label>
-                                <input type="text" name="service"
-                                    class="form-control @error('service') is-invalid @enderror"
-                                    value="{{ old('service') }}" placeholder="Enter service" required>
+                                <select name="service" class="form-select @error('service') is-invalid @enderror"
+                                    required>
+                                    <option value="" selected disabled>Select service</option>
+                                    @if (isset($divisions))
+                                        @foreach ($divisions as $division)
+                                            <option value="{{ $division->name }}"
+                                                {{ old('service') == $division->name ? 'selected' : '' }}>
+                                                {{ $division->name }}
+                                            </option>   
+                                        @endforeach
+                                    @endif
+                                </select>
                             </div>
 
                             <div class="mb-2">
                                 <label class="form-label">Division <span class="text-danger">*</span></label>
-                                <select name="division" class="form-select @error('division') is-invalid @enderror"
-                                    required>
-                                    <option value="" selected disabled>Select division</option>
-                                    @if (isset($divisions))
-                                        @foreach ($divisions as $division)
-                                            <option value="{{ $division->name }}"
-                                                {{ old('division', auth()->user()->division->name ?? '') == $division->name ? 'selected' : '' }}>
-                                                {{ $division->name }}
-                                            </option>
-                                        @endforeach
-                                    @endif
-                                </select>
+                                <input type="text" name="division"
+                                    class="form-control @error('division') is-invalid @enderror"
+                                    value="{{ old('division') }}" placeholder="Enter division" required>
                             </div>
 
                             <div class="mb-2">

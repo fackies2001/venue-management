@@ -52,13 +52,16 @@ class ActivityLog extends Model
     public function actionBadgeClass(): string
     {
         return match ($this->action) {
-            'approved'  => 'bg-success',
-            'rejected'  => 'bg-danger',
-            'deleted'   => 'bg-dark',
-            'cancelled' => 'bg-secondary',
-            'created'   => 'bg-primary',
-            'updated'   => 'bg-info text-dark',
-            default     => 'bg-warning text-dark',
+            'created'             => 'bg-primary',
+            'updated'             => 'bg-info',
+            'approved'            => 'bg-success',
+            'rejected'            => 'bg-danger',
+            'cancelled'           => 'bg-secondary',
+            'deleted'             => 'bg-dark',
+            'archived'            => 'bg-secondary',
+            'restored'            => 'bg-warning',
+            'permanently_deleted' => 'bg-warning',
+            default               => 'bg-secondary',
         };
     }
 }

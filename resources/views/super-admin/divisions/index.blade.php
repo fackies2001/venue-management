@@ -7,6 +7,35 @@
     {{-- DataTables & SweetAlert2 CSS --}}
     <link rel="stylesheet" href="https://cdn.datatables.net/1.13.6/css/dataTables.bootstrap5.min.css">
     <link rel="stylesheet" href="https://cdn.jsdelivr.net/npm/sweetalert2@11/dist/sweetalert2.min.css">
+
+    <style>
+        /* Alignment Fixes */
+        #divisionsTable thead th.text-center {
+            padding-left: 35px !important;
+            /* Offset para sa sorting arrows */
+        }
+
+        #divisionsTable {
+            width: 100% !important;
+        }
+
+        /* Column Widths */
+        #divisionsTable th:nth-child(1) {
+            width: 50%;
+        }
+
+        /* Name */
+        #divisionsTable th:nth-child(2) {
+            width: 20%;
+        }
+
+        /* Users */
+        #divisionsTable th:nth-child(3) {
+            width: 30%;
+        }
+
+        /* Actions */
+    </style>
 @endpush
 
 @section('content')
@@ -33,21 +62,22 @@
                             <thead class="table-dark">
                                 <tr>
                                     <th class="ps-3">Division Name</th>
-                                    <th>Total Users</th>
-                                    <th class="text-end pe-3">Actions</th>
+                                    <th class="text-center">Total Users</th>
+                                    <th class="text-center">Actions</th>
                                 </tr>
                             </thead>
                             <tbody>
                                 @foreach ($divisions as $division)
                                     <tr>
                                         <td class="ps-3 fw-semibold">{{ $division->name }}</td>
-                                        <td>
+                                        <td class="text-center">
                                             <span class="badge bg-secondary px-2 py-1">
                                                 {{ $division->users()->count() }} Users
                                             </span>
                                         </td>
-                                        <td class="text-end pe-3">
-                                            <div class="d-flex justify-content-end gap-1 flex-wrap">
+                                        <td class="text-center">
+                                            <div class="d-flex justify-content-center gap-1 flex-wrap">
+                                                <!-- justify-content-center -->
                                                 <!-- View Users -->
                                                 <button type="button" class="btn btn-sm btn-outline-primary py-0 px-2"
                                                     data-bs-toggle="modal"
@@ -62,7 +92,7 @@
                                                     <i class="bi bi-pencil me-1"></i>Edit
                                                 </button>
 
-                                                <!-- Delete (Handled by SweetAlert JS) -->
+                                                <!-- Delete -->
                                                 <form action="{{ route('super-admin.divisions.destroy', $division->id) }}"
                                                     method="POST" class="d-inline delete-form">
                                                     @csrf
@@ -234,6 +264,7 @@
             // 1. Initialize DataTables
             $('#divisionsTable').DataTable({
                 destroy: true,
+                autoWidth: false,
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 order: [
