@@ -14,7 +14,7 @@ class RoleMiddleware
             return redirect()->route('login');
         }
 
-        // ✅ AYOS: Huwag i-logout, i-abort na lang o i-redirect
+        //  AYOS: Huwag i-logout, i-abort na lang o i-redirect
         if (! in_array(Auth::user()->role, $roles)) {
             abort(404, 'Unauthorized to access this page.');
             // OR: return redirect()->back()->with('error', 'Unauthorized access.');

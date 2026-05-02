@@ -205,7 +205,7 @@
 
 @section('content')
 
-    {{-- ✅ FIXED: Idinagdag ang 'admin' sa match statement para hindi mag 404 --}}
+    {{--  FIXED: Idinagdag ang 'admin' sa match statement para hindi mag 404 --}}
     @php
         $prefix = match (auth()->user()->role) {
             'admin' => 'admin',
@@ -263,7 +263,7 @@
                     <div class="row g-3">
                         <div class="col-md-6">
                             <label class="form-label">Building <span class="text-danger">*</span></label>
-                            {{-- ✅ FIXED: Removed JSON Output --}}
+                            {{--  FIXED: Removed JSON Output --}}
                             <select id="buildingSelect" name="building"
                                 class="form-select @error('building') is-invalid @enderror" required>
                                 <option value="" data-id="">— Select Building —</option>
@@ -277,7 +277,7 @@
                         </div>
                         <div class="col-md-6">
                             <label class="form-label">Venue <span class="text-danger">*</span></label>
-                            {{-- ✅ FIXED: Data-building is now properly pointing to building_id --}}
+                            {{--  FIXED: Data-building is now properly pointing to building_id --}}
                             <select id="venueSelect" name="venue_id"
                                 class="form-select @error('venue_id') is-invalid @enderror" required>
                                 <option value="">— Select Building First —</option>
@@ -464,7 +464,7 @@
 @push('scripts')
     <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <script>
-        // ✅ FIXED: Cascade Logic now uses dataset properly
+        //  FIXED: Cascade Logic now uses dataset properly
         document.getElementById('buildingSelect').addEventListener('change', function() {
             const selectedOption = this.options[this.selectedIndex];
             const buildingId = selectedOption.getAttribute('data-id');
@@ -479,7 +479,7 @@
             });
         });
 
-        // ✅ Capacity Logic
+        //  Capacity Logic
         const participantsInput = document.getElementById('participantsInput');
         const capacityHelper = document.getElementById('capacityHelper');
 
@@ -501,13 +501,13 @@
         document.getElementById('venueSelect').addEventListener('change', updateCapacityHelper);
         window.addEventListener('load', updateCapacityHelper);
 
-        // ✅ Phone Validation
+        //  Phone Validation
         const phoneInput = document.getElementById('phoneInput');
         phoneInput.addEventListener('input', function() {
             this.value = this.value.replace(/[^0-9\+\-\s\(\)]/g, '');
         });
 
-        // ✅ Form Submit Confirmation
+        //  Form Submit Confirmation
         let confirmed = false;
         const form = document.getElementById('bookingForm');
         form.addEventListener('submit', function(e) {

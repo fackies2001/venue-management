@@ -460,7 +460,7 @@
 
         });
 
-        // ✅ ADDED: Auto-submit filters on change (Action dropdown + Date fields)
+        //  Auto-submit filters on change (Action dropdown + Date fields)
         document.querySelectorAll('select[name="action"], input[name="date_from"], input[name="date_to"]')
             .forEach(function(el) {
                 el.addEventListener('change', function() {

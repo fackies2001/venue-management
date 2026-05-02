@@ -13,7 +13,7 @@ class VenueController extends Controller
      */
     public function store(Request $request)
     {
-        // ✅ FIXED: Kasama na ang 'room_floor' sa validation
+        //  FIXED: Kasama na ang 'room_floor' sa validation
         $validated = $request->validate([
             'building_id' => 'required|exists:buildings,id',
             'name'        => 'required|string|max:255',
@@ -37,7 +37,7 @@ class VenueController extends Controller
     {
         $venue = Venue::findOrFail($id);
 
-        // ✅ FIXED: Kasama na rin ang 'room_floor' sa pag-update
+        //  FIXED: Kasama na rin ang 'room_floor' sa pag-update
         $validated = $request->validate([
             'building_id' => 'required|exists:buildings,id',
             'name'        => 'required|string|max:255',

@@ -133,7 +133,7 @@
                         class="bi bi-check-circle me-1"></i>{{ session('success') }}</div>
             @endif
 
-            {{-- ✅ FIXED: Eto yung sasalo ng error messages galing sa controller --}}
+            {{--  FIXED: Eto yung sasalo ng error messages galing sa controller --}}
             @if (session('error'))
                 <div class="alert alert-danger py-2 small"><i
                         class="bi bi-exclamation-triangle me-1"></i>{{ session('error') }}</div>

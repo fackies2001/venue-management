@@ -28,7 +28,6 @@
             padding: .2rem .55rem;
         }
 
-        /* Modal detail rows */
         .detail-label {
             width: 38%;
             color: #6c757d;
@@ -102,12 +101,12 @@
                     <thead>
                         <tr>
                             <th>#</th>
-
                             <th>Event Title</th>
                             <th>Venue</th>
                             <th>Event Date</th>
                             <th>Time</th>
                             <th>Status</th>
+                            <th>Approved By</th>
                             <th>Processed On</th>
                             <th class="text-center">Action</th>
                         </tr>
@@ -116,14 +115,8 @@
                         @forelse ($history as $booking)
                             <tr>
                                 <td>{{ $booking->id }}</td>
-                                {{-- <td>
-                                    <div class="fw-semibold small">{{ $booking->user->name }}</div>
-                                    <div class="text-muted" style="font-size:.75rem;">
-                                        {{ $booking->user->department ?? '—' }}
-                                    </div>
-                                </td> --}}
                                 <td>{{ $booking->event_title }}</td>
-                                <td>{{ $booking->venue->name }}</td>
+                                <td>{{ $booking->venue->name ?? 'Deleted Venue' }}</td>
                                 <td data-order="{{ $booking->event_date->timestamp }}">
                                     {{ $booking->event_date->format('M d, Y') }}
                                 </td>
@@ -135,6 +128,9 @@
                                     <span class="badge {{ $booking->statusBadgeClass() }} px-2 py-1">
                                         {{ ucfirst($booking->status) }}
                                     </span>
+                                </td>
+                                <td class="small text-muted">
+                                    {{ $booking->approvedBy->name ?? '—' }}
                                 </td>
                                 <td data-order="{{ $booking->approved_at ? $booking->approved_at->timestamp : 0 }}"
                                     class="small text-muted">
@@ -155,7 +151,7 @@
         </div>
     </div>
 
-    {{-- ══ Booking Detail Modal — REDESIGNED ══ --}}
+    {{-- Booking Detail Modal --}}
     <div class="modal fade" id="detailModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
@@ -268,6 +264,10 @@
                                     style="color:var(--ocd-blue,#1a3c72); font-size:.78rem; text-transform:uppercase; letter-spacing:.05em;">
                                     <i class="bi bi-check-circle me-1"></i>Processing Info
                                 </p>
+                                <div class="detail-row">
+                                    <div class="detail-label">Approved By</div>
+                                    <div class="detail-value" id="dApprovedBy"></div>
+                                </div>
                                 <div class="detail-row" style="border-bottom:none;">
                                     <div class="detail-label">Admin Remarks</div>
                                     <div class="detail-value" id="dAdminRemarks"></div>
@@ -295,7 +295,7 @@
             fn($b) => [
                 'id' => $b->id,
                 'event_title' => $b->event_title,
-                'venue' => $b->venue->name,
+                'venue' => $b->venue->name ?? 'Deleted Venue',
                 'event_date' => $b->event_date->format('F d, Y'),
                 'start_time' => \Carbon\Carbon::parse($b->start_time)->format('h:i A'),
                 'end_time' => \Carbon\Carbon::parse($b->end_time)->format('h:i A'),
@@ -303,13 +303,13 @@
                 'expected_attendees' => $b->expected_attendees ?? '—',
                 'remarks' => $b->remarks ?? '—',
                 'booker_name' => $b->booker_name ?? $b->user->name,
-                'department' => $b->user->department ?? '—',
                 'email' => $b->email ?? $b->user->email,
                 'phone' => $b->phone ?? '—',
                 'service' => $b->service ?? '—',
                 'division' => $b->division ?? '—',
                 'status' => ucfirst($b->status),
                 'status_class' => $b->statusBadgeClass(),
+                'approved_by' => $b->approvedBy->name ?? '—',
                 'approved_at' => $b->approved_at ? $b->approved_at->format('M d, Y h:i A') : '—',
                 'admin_remarks' => $b->admin_remarks ?? '—',
                 'attachment_path' => $b->attachment_path ? Storage::url($b->attachment_path) : null,
@@ -322,18 +322,51 @@
         const bookingsData = @json($bookingsJson);
     </script>
 
+    {{-- Attachment Preview Modal --}}
+    <div class="modal fade" id="attachmentModal" tabindex="-1" style="z-index:1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
+                <div class="modal-header px-4 py-3" style="background:var(--ocd-dark, #0a1144); border:none;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="background:rgba(232,119,34,0.2); border-radius:8px; padding:6px 10px;">
+                            <i class="bi bi-paperclip" style="color:#e87722; font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 text-white fw-bold">Attachment Preview</h6>
+                            <small style="color:rgba(255,255,255,0.55);" id="attachmentFileName"></small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
+                </div>
+                <div class="modal-body p-3" id="attachmentModalBody" style="background:#f8f9fa; min-height:200px;">
+                    {{-- content injected by JS --}}
+                </div>
+                <div class="modal-footer px-4 py-2" style="background:#f8f9fa; border-top:1px solid #e9ecef;">
+                    <a id="attachmentDownloadBtn" href="#" download class="btn btn-sm btn-outline-primary px-3">
+                        <i class="bi bi-download me-1"></i>Download
+                    </a>
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
+                </div>
+            </div>
+        </div>
+    </div>
+
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/jquery.dataTables.min.js"></script>
     <script src="https://cdn.datatables.net/1.13.6/js/dataTables.bootstrap5.min.js"></script>
     <script>
         $(document).ready(function() {
             $('#historyTable').DataTable({
-                destroy: true, // ← dagdag ito
+                destroy: true,
                 order: [
-                    [6, 'desc']
-                ], // ← i-change sa column 6 (Processed On)
+                    [7, 'desc']
+                ],
                 pageLength: 10,
                 lengthMenu: [10, 25, 50, 100],
                 columnDefs: [{
@@ -352,7 +385,6 @@
                 }
             });
         });
-
 
         function showDetail(id) {
             const b = bookingsData.find(x => x.id === id);
@@ -373,19 +405,137 @@
             document.getElementById('dDivision').textContent = b.division;
             document.getElementById('dStatus').innerHTML =
                 `<span class="badge ${b.status_class} px-2 py-1">${b.status}</span>`;
+            document.getElementById('dApprovedBy').textContent = b.approved_by;
             document.getElementById('dProcessed').textContent = b.approved_at;
             document.getElementById('dAdminRemarks').textContent = b.admin_remarks;
 
-            // Attachment
+            // Attachment — clean link format
             const attachEl = document.getElementById('dAttachment');
-            if (b.attachment_path) {
-                attachEl.innerHTML = `<a href="${b.attachment_path}" target="_blank">
-        <i class="bi bi-paperclip me-1"></i>View Attachment</a>`;
+            if (b.attachment_path && b.attachment_name) {
+                const ext = b.attachment_name.split('.').pop().toLowerCase();
+                attachEl.innerHTML = `
+                    <a href="#" onclick="openAttachmentPreview('${b.attachment_path}', '${b.attachment_name}', '${ext}'); return false;"
+                        class="text-primary" style="font-size:.9rem; text-decoration:none;">
+                        <i class="bi bi-paperclip me-1"></i>View Attachment
+                    </a>`;
             } else {
                 attachEl.textContent = '—';
             }
 
-            new bootstrap.Modal(document.getElementById('detailModal')).show();
+            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
+            modal.show();
+        }
+
+        function openAttachmentPreview(filePath, fileName, ext) {
+            document.getElementById('attachmentFileName').textContent = fileName;
+            document.getElementById('attachmentDownloadBtn').href = filePath;
+
+            const body = document.getElementById('attachmentModalBody');
+            body.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted small">Loading...</p>
+                </div>`;
+
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                body.innerHTML = `
+                    <div class="text-center">
+                        <img src="${filePath}" alt="${fileName}"
+                            style="max-width:100%; max-height:70vh; border-radius:8px; object-fit:contain;">
+                    </div>`;
+
+            } else if (ext === 'pdf') {
+                body.innerHTML = `
+                    <iframe src="${filePath}#toolbar=0" width="100%"
+                        style="height:70vh; border:none; border-radius:8px;"></iframe>`;
+
+            } else if (['doc', 'docx'].includes(ext)) {
+                body.innerHTML = `
+                    <div id="mammoth-attach-output"
+                        style="background:#fff; border-radius:8px; padding:1rem;
+                               max-height:70vh; overflow-y:auto; font-size:.9rem; line-height:1.7;">
+                        <div class="text-muted small text-center py-3">
+                            <i class="bi bi-hourglass-split me-1"></i>Rendering document...
+                        </div>
+                    </div>`;
+
+                fetch(filePath)
+                    .then(res => res.arrayBuffer())
+                    .then(buffer => mammoth.convertToHtml({
+                        arrayBuffer: buffer
+                    }))
+                    .then(result => {
+                        document.getElementById('mammoth-attach-output').innerHTML =
+                            result.value || '<p class="text-muted text-center">No content to preview.</p>';
+                    })
+                    .catch(() => {
+                        document.getElementById('mammoth-attach-output').innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-circle display-4"></i>
+                                <p class="mt-2">Could not render preview. Please download the file.</p>
+                            </div>`;
+                    });
+
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                body.innerHTML = `
+                    <div id="xlsx-preview-output"
+                        style="background:#fff; border-radius:8px; padding:1rem;
+                               max-height:70vh; overflow:auto; font-size:.88rem;">
+                        <div class="text-muted small text-center py-3">
+                            <i class="bi bi-hourglass-split me-1"></i>Rendering spreadsheet...
+                        </div>
+                    </div>`;
+
+                fetch(filePath)
+                    .then(res => res.arrayBuffer())
+                    .then(buffer => {
+                        const workbook = XLSX.read(buffer, {
+                            type: 'array'
+                        });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const html = XLSX.utils.sheet_to_html(firstSheet, {
+                            header: '',
+                            footer: ''
+                        });
+                        document.getElementById('xlsx-preview-output').innerHTML = `
+                            <style>
+                                #xlsx-preview-output table { border-collapse:collapse; width:100%; font-size:.82rem; }
+                                #xlsx-preview-output td, #xlsx-preview-output th {
+                                    border: 1px solid #dee2e6;
+                                    padding: .35rem .6rem;
+                                    white-space: nowrap;
+                                }
+                                #xlsx-preview-output tr:nth-child(even) { background:#f8f9fa; }
+                                #xlsx-preview-output tr:first-child {
+                                    background:#212529;
+                                    color:#fff;
+                                    font-weight:600;
+                                }
+                            </style>
+                            ${html}`;
+                    })
+                    .catch(() => {
+                        document.getElementById('xlsx-preview-output').innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-circle display-4"></i>
+                                <p class="mt-2">Could not render preview. Please download the file.</p>
+                            </div>`;
+                    });
+
+            } else {
+                body.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+                        <p class="mt-3 text-muted">No preview available for .${ext} files.</p>
+                        <p class="small text-muted">Please use the download button below.</p>
+                    </div>`;
+            }
+
+            // Close detail modal first, then open attachment modal
+            bootstrap.Modal.getInstance(document.getElementById('detailModal'))?.hide();
+            setTimeout(() => {
+                new bootstrap.Modal(document.getElementById('attachmentModal')).show();
+            }, 300);
         }
     </script>
 @endpush

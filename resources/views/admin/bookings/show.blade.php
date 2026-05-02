@@ -335,7 +335,7 @@
                 <div class="detail-item">
                     <span class="di-label">Venue</span>
                     <span class="di-value">
-                        {{-- ✅ FIXED: Dinagdag ang Room/Floor dito! --}}
+                        {{--  FIXED: Dinagdag ang Room/Floor dito! --}}
                         <i class="bi bi-geo-alt-fill"></i>{{ $booking->venue->name ?? 'Deleted Venue' }}
                         @if ($booking->venue && $booking->venue->room_floor)
                             <span class="text-muted" style="font-size: .85rem;">({{ $booking->venue->room_floor }})</span>
@@ -596,49 +596,103 @@
 @endsection
 
 @push('scripts')
-    {{-- Script para sa File Preview Modal --}}
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script>
         function openFileModal(fileUrl, fileExt) {
             const modalBody = document.getElementById('fileViewerBody');
             const downloadBtn = document.getElementById('downloadFileBtn');
 
-            // Set download button link
             downloadBtn.href = fileUrl;
 
-            // Loading state
             modalBody.innerHTML = `
                 <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status" style="width: 3rem; height: 3rem;"></div>
+                    <div class="spinner-border text-primary" role="status" style="width:3rem; height:3rem;"></div>
                     <p class="mt-3 text-muted">Loading preview...</p>
                 </div>`;
 
-            let content = '';
-
-            // Image Preview
             if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
-                content =
-                    `<img src="${fileUrl}" class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain; padding: 1rem;" alt="Attachment">`;
-            }
-            // PDF Preview
-            else if (fileExt === 'pdf') {
-                content =
-                    `<iframe src="${fileUrl}#toolbar=0" width="100%" height="100%" style="border: none; min-height: 75vh;"></iframe>`;
-            }
-            // Office Documents Preview (Word, Excel)
-            else if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExt)) {
-                const encodedUrl = encodeURIComponent(fileUrl);
-                content = `
-                    <div class="w-100 h-100 d-flex flex-column">
-                        <div class="alert alert-warning m-3 text-center small">
-                            <i class="bi bi-exclamation-triangle-fill me-1"></i> 
-                            <strong>Note:</strong> Word/Excel preview requires a public internet connection. If it doesn't load on localhost, please use the download button below.
-                        </div>
-                        <iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}" width="100%" height="100%" style="border: none; flex-grow: 1;"></iframe>
+                modalBody.innerHTML = `
+                    <img src="${fileUrl}" class="img-fluid"
+                        style="max-height:100%; max-width:100%; object-fit:contain; padding:1rem;" alt="Attachment">`;
+
+            } else if (fileExt === 'pdf') {
+                modalBody.innerHTML = `
+                    <iframe src="${fileUrl}#toolbar=0" width="100%" height="100%"
+                        style="border:none; min-height:75vh;"></iframe>`;
+
+            } else if (['doc', 'docx'].includes(fileExt)) {
+                modalBody.innerHTML = `
+                    <div class="w-100 p-4" style="overflow-y:auto; max-height:80vh;">
+                        <div id="mammoth-output" style="font-size:.9rem; line-height:1.6;"></div>
                     </div>`;
-            }
-            // Fallback para sa hindi supported na files
-            else {
-                content = `
+
+                fetch(fileUrl)
+                    .then(res => res.arrayBuffer())
+                    .then(buffer => mammoth.convertToHtml({
+                        arrayBuffer: buffer
+                    }))
+                    .then(result => {
+                        document.getElementById('mammoth-output').innerHTML =
+                            result.value || '<p class="text-muted">No content to preview.</p>';
+                    })
+                    .catch(() => {
+                        document.getElementById('mammoth-output').innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-circle display-4"></i>
+                                <p class="mt-2">Could not render preview. Please download the file.</p>
+                            </div>`;
+                    });
+
+                const previewModal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
+                previewModal.show();
+                return;
+
+            } else if (['xls', 'xlsx'].includes(fileExt)) {
+                modalBody.innerHTML = `
+                    <div id="xlsx-preview-output" class="w-100 p-3"
+                        style="background:#fff; max-height:80vh; overflow:auto; font-size:.88rem;">
+                        <div class="text-muted small text-center py-3">
+                            <i class="bi bi-hourglass-split me-1"></i>Rendering spreadsheet...
+                        </div>
+                    </div>`;
+
+                fetch(fileUrl)
+                    .then(res => res.arrayBuffer())
+                    .then(buffer => {
+                        const workbook = XLSX.read(buffer, {
+                            type: 'array'
+                        });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const html = XLSX.utils.sheet_to_html(firstSheet, {
+                            header: '',
+                            footer: ''
+                        });
+                        document.getElementById('xlsx-preview-output').innerHTML = `
+                            <style>
+                                #xlsx-preview-output table { border-collapse:collapse; width:100%; font-size:.82rem; }
+                                #xlsx-preview-output td, #xlsx-preview-output th {
+                                    border:1px solid #dee2e6; padding:.35rem .6rem; white-space:nowrap;
+                                }
+                                #xlsx-preview-output tr:nth-child(even) { background:#f8f9fa; }
+                                #xlsx-preview-output tr:first-child { background:#212529; color:#fff; font-weight:600; }
+                            </style>
+                            ${html}`;
+                    })
+                    .catch(() => {
+                        document.getElementById('xlsx-preview-output').innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-circle display-4"></i>
+                                <p class="mt-2">Could not render preview. Please download the file.</p>
+                            </div>`;
+                    });
+
+                const previewModal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
+                previewModal.show();
+                return;
+
+            } else {
+                modalBody.innerHTML = `
                     <div class="text-center py-5">
                         <i class="bi bi-file-earmark-x display-1 text-muted"></i>
                         <h5 class="mt-3">Preview Not Supported</h5>
@@ -647,10 +701,6 @@
                     </div>`;
             }
 
-            // Inject content to modal
-            modalBody.innerHTML = content;
-
-            // Show Modal
             const previewModal = new bootstrap.Modal(document.getElementById('filePreviewModal'));
             previewModal.show();
         }

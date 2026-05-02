@@ -43,7 +43,7 @@
                     <select name="venue_id" class="form-select form-select-sm" onchange="this.form.submit()">
                         <option value="">All Venues</option>
                         @foreach ($venues as $venue)
-                            {{-- ✅ FIXED: Idinagdag ang Room/Floor sa Dropdown --}}
+                            {{--  FIXED: Idinagdag ang Room/Floor sa Dropdown --}}
                             <option value="{{ $venue->id }}" {{ request('venue_id') == $venue->id ? 'selected' : '' }}>
                                 {{ $venue->name }} {{ $venue->room_floor ? '(' . $venue->room_floor . ')' : '' }}
                             </option>
@@ -88,7 +88,7 @@
                                 </td>
                                 <td>{{ $booking->event_title }}</td>
 
-                                {{-- ✅ FIXED: Idinagdag ang Room/Floor display at null-safe check --}}
+                                {{--  FIXED: Idinagdag ang Room/Floor display at null-safe check --}}
                                 <td>
                                     {{ $booking->venue->name ?? 'Deleted Venue' }}
                                     @if ($booking->venue && $booking->venue->room_floor)
@@ -137,7 +137,7 @@
                                             </button>
                                         @endif
 
-                                        {{-- ✅ CHANGED: Delete → Archive (soft delete) for admin role --}}
+                                        {{--  CHANGED: Delete → Archive (soft delete) for admin role --}}
                                         @if (auth()->user()->role === 'admin')
                                             <form method="POST"
                                                 action="{{ route($prefix . '.bookings.destroy', $booking) }}"

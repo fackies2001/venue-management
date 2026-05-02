@@ -27,7 +27,7 @@ class DivisionController extends Controller
         return back()->with('success', 'Division added successfully.');
     }
 
-    // ✅ ADDED THIS NEW METHOD
+    //  ADDED THIS NEW METHOD
     public function update(Request $request, Division $division)
     {
         $request->validate([

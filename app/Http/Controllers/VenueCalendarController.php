@@ -44,7 +44,7 @@ class VenueCalendarController extends Controller
             $startDisplay = date('h:i A', strtotime($booking->start_time));
             $endDisplay   = date('h:i A', strtotime($booking->end_time));
 
-            // ✅ FIXED: Append Room/Floor to the venue name in the modal!
+            //  FIXED: Append Room/Floor to the venue name in the modal!
             $venueName = $booking->venue ? $booking->venue->name : '—';
             if ($booking->venue && $booking->venue->room_floor) {
                 $venueName .= ' (' . $booking->venue->room_floor . ')';

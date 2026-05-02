@@ -5,10 +5,10 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use App\Models\ActivityLog;
 use App\Models\Booking;
-use App\Models\VenueEvent; // ✅ ADDED: Import VenueEvent model
+use App\Models\VenueEvent; 
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Carbon\Carbon;         // ✅ ADDED: Import Carbon for date formatting
+use Carbon\Carbon;         
 
 class ArchiveController extends Controller
 {
@@ -53,7 +53,7 @@ class ArchiveController extends Controller
 
         $booking->restore();
 
-        // ✅ FIXED: If it was approved, recreate its VenueEvent so it shows on the calendar
+        //  FIXED: If it was approved, recreate its VenueEvent so it shows on the calendar
         if ($booking->status === Booking::STATUS_APPROVED) {
             VenueEvent::firstOrCreate(
                 ['booking_id' => $booking->id],

@@ -2,7 +2,7 @@
 
 namespace App\Http\Controllers;
 
-use App\Models\ActivityLog; // ✅ ADDED: Import the ActivityLog model
+use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Venue;
 use App\Models\Building;
@@ -182,7 +182,7 @@ class VenueBookingController extends Controller
         $booking->update($validated);
 
         // ── Log ──────────────────────────────────────────────
-        // ✅ ADDED: Logging functionality so user edits don't go unnoticed!
+        //  ADDED: Logging functionality so user edits don't go unnoticed!
         ActivityLog::record(
             'updated',
             $booking,

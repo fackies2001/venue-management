@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ActivityLog; // ADDED: ActivityLog model
+use App\Models\ActivityLog; 
 use App\Models\Booking;
 use App\Models\Building;
 use App\Models\VenueEvent;
 use App\Models\Venue;
-use App\Models\Division;      // KEPT: Division model fix
+use App\Models\Division;      
 use Illuminate\Http\Request;
 use App\Mail\BookingApproved;
 use App\Mail\BookingCancelled;
