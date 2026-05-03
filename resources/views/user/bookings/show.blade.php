@@ -278,7 +278,7 @@
                                 $fileExt = strtolower(pathinfo($booking->attachment_path, PATHINFO_EXTENSION));
                             @endphp
                             <button type="button" class="btn btn-sm btn-outline-primary"
-                                onclick="openFileModal('{{ $fileUrl }}', '{{ $fileExt }}')">
+                                onclick="openAttachmentPreview('{{ $fileUrl }}', '{{ basename($booking->attachment_path) }}', '{{ $fileExt }}')">
                                 <i class="bi bi-eye me-1"></i> View My Uploaded File
                             </button>
                         </span>
@@ -318,60 +318,142 @@
             @endif
         </div>
 
-    </div>{{-- end .booking-detail-card --}}
+    </div>
 
-    {{-- ✅ File Preview Modal (Matches Admin Side) --}}
-    <div class="modal fade" id="filePreviewModal" tabindex="-1" aria-hidden="true">
-        <div class="modal-dialog modal-dialog-centered" style="max-width: 90vw;">
-            <div class="modal-content" style="border-radius:14px; overflow:hidden; border:none; height: 90vh;">
-                <div class="modal-header" style="background:var(--ocd-blue); color:#fff; border:none;">
-                    <h5 class="modal-title fw-bold"><i class="bi bi-file-earmark-text me-2"></i>Attachment Preview</h5>
-                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"
-                        aria-label="Close"></button>
+    {{--  Attachment Preview Modal — offline capable --}}
+    <div class="modal fade" id="attachmentModal" tabindex="-1" style="z-index:1060;">
+        <div class="modal-dialog modal-lg modal-dialog-centered">
+            <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
+                <div class="modal-header px-4 py-3" style="background:var(--ocd-dark, #0a1144); border:none;">
+                    <div class="d-flex align-items-center gap-2">
+                        <div style="background:rgba(232,119,34,0.2); border-radius:8px; padding:6px 10px;">
+                            <i class="bi bi-paperclip" style="color:#e87722; font-size:1.1rem;"></i>
+                        </div>
+                        <div>
+                            <h6 class="mb-0 text-white fw-bold">Attachment Preview</h6>
+                            <small style="color:rgba(255,255,255,0.55);" id="attachmentFileName"></small>
+                        </div>
+                    </div>
+                    <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-0 d-flex justify-content-center align-items-center" id="fileViewerBody"
-                    style="background: #f8f9fa; overflow-y: auto;">
-                </div>
-                <div class="modal-footer" style="border-top:1px solid #f0f2f5; background:#fafbfc; padding: 0.5rem 1rem;">
-                    <a href="#" id="downloadFileBtn" class="btn btn-sm btn-primary fw-semibold" download
-                        target="_blank">
-                        <i class="bi bi-download me-1"></i> Download File
+                <div class="modal-body p-3" id="attachmentModalBody" style="background:#f8f9fa; min-height:200px;"></div>
+                <div class="modal-footer px-4 py-2" style="background:#f8f9fa; border-top:1px solid #e9ecef;">
+                    <a id="attachmentDownloadBtn" href="#" download class="btn btn-sm btn-outline-primary px-3">
+                        <i class="bi bi-download me-1"></i>Download
                     </a>
-                    <button type="button" class="btn btn-sm btn-secondary" data-bs-dismiss="modal">Close</button>
+                    <button type="button" class="btn btn-sm btn-outline-secondary px-4" data-bs-dismiss="modal">
+                        <i class="bi bi-x-circle me-1"></i>Close
+                    </button>
                 </div>
             </div>
         </div>
     </div>
-
 @endsection
 
 @push('scripts')
+    <script src="https://cdn.jsdelivr.net/npm/mammoth@1.6.0/mammoth.browser.min.js"></script>
+    <script src="https://cdn.sheetjs.com/xlsx-0.20.0/package/dist/xlsx.full.min.js"></script>
     <script>
-        function openFileModal(fileUrl, fileExt) {
-            const modalBody = document.getElementById('fileViewerBody');
-            const downloadBtn = document.getElementById('downloadFileBtn');
-            downloadBtn.href = fileUrl;
+        function openAttachmentPreview(filePath, fileName, ext) {
+            document.getElementById('attachmentFileName').textContent = fileName;
+            document.getElementById('attachmentDownloadBtn').href = filePath;
 
-            modalBody.innerHTML =
-                `<div class="text-center py-5"><div class="spinner-border text-primary" role="status"></div><p class="mt-3">Loading...</p></div>`;
+            const body = document.getElementById('attachmentModalBody');
+            body.innerHTML = `
+                <div class="text-center py-5">
+                    <div class="spinner-border text-primary" role="status"></div>
+                    <p class="mt-2 text-muted small">Loading...</p>
+                </div>`;
 
-            let content = '';
-            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(fileExt)) {
-                content =
-                    `<img src="${fileUrl}" class="img-fluid" style="max-height: 100%; max-width: 100%; object-fit: contain; padding: 1rem;">`;
-            } else if (fileExt === 'pdf') {
-                content = `<iframe src="${fileUrl}#toolbar=0" width="100%" height="100%" style="border: none;"></iframe>`;
-            } else if (['doc', 'docx', 'xls', 'xlsx'].includes(fileExt)) {
-                const encodedUrl = encodeURIComponent(fileUrl);
-                content =
-                    `<div class="w-100 h-100 d-flex flex-column"><div class="alert alert-warning m-3 text-center small">Preview requires internet. If it doesn't load, use Download.</div><iframe src="https://view.officeapps.live.com/op/embed.aspx?src=${encodedUrl}" width="100%" height="100%" style="border: none; flex-grow: 1;"></iframe></div>`;
+            if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
+                body.innerHTML = `
+                    <div class="text-center">
+                        <img src="${filePath}" alt="${fileName}"
+                            style="max-width:100%; max-height:70vh; border-radius:8px; object-fit:contain;">
+                    </div>`;
+
+            } else if (ext === 'pdf') {
+                body.innerHTML = `
+                    <iframe src="${filePath}#toolbar=0" width="100%"
+                        style="height:70vh; border:none; border-radius:8px;"></iframe>`;
+
+            } else if (['doc', 'docx'].includes(ext)) {
+                body.innerHTML = `
+                    <div id="mammoth-attach-output"
+                        style="background:#fff; border-radius:8px; padding:1rem;
+                               max-height:70vh; overflow-y:auto; font-size:.9rem; line-height:1.7;">
+                        <div class="text-muted small text-center py-3">
+                            <i class="bi bi-hourglass-split me-1"></i>Rendering document...
+                        </div>
+                    </div>`;
+
+                fetch(filePath)
+                    .then(res => res.arrayBuffer())
+                    .then(buffer => mammoth.convertToHtml({
+                        arrayBuffer: buffer
+                    }))
+                    .then(result => {
+                        document.getElementById('mammoth-attach-output').innerHTML =
+                            result.value || '<p class="text-muted text-center">No content to preview.</p>';
+                    })
+                    .catch(() => {
+                        document.getElementById('mammoth-attach-output').innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-circle display-4"></i>
+                                <p class="mt-2">Could not render preview. Please download the file.</p>
+                            </div>`;
+                    });
+
+            } else if (['xls', 'xlsx'].includes(ext)) {
+                body.innerHTML = `
+                    <div id="xlsx-preview-output"
+                        style="background:#fff; border-radius:8px; padding:1rem;
+                               max-height:70vh; overflow:auto; font-size:.88rem;">
+                        <div class="text-muted small text-center py-3">
+                            <i class="bi bi-hourglass-split me-1"></i>Rendering spreadsheet...
+                        </div>
+                    </div>`;
+
+                fetch(filePath)
+                    .then(res => res.arrayBuffer())
+                    .then(buffer => {
+                        const workbook = XLSX.read(buffer, {
+                            type: 'array'
+                        });
+                        const firstSheet = workbook.Sheets[workbook.SheetNames[0]];
+                        const html = XLSX.utils.sheet_to_html(firstSheet, {
+                            header: '',
+                            footer: ''
+                        });
+                        document.getElementById('xlsx-preview-output').innerHTML = `
+                            <style>
+                                #xlsx-preview-output table { border-collapse:collapse; width:100%; font-size:.82rem; }
+                                #xlsx-preview-output td, #xlsx-preview-output th {
+                                    border:1px solid #dee2e6; padding:.35rem .6rem; white-space:nowrap;
+                                }
+                                #xlsx-preview-output tr:nth-child(even) { background:#f8f9fa; }
+                                #xlsx-preview-output tr:first-child { background:#212529; color:#fff; font-weight:600; }
+                            </style>
+                            ${html}`;
+                    })
+                    .catch(() => {
+                        document.getElementById('xlsx-preview-output').innerHTML = `
+                            <div class="text-center py-4 text-danger">
+                                <i class="bi bi-exclamation-circle display-4"></i>
+                                <p class="mt-2">Could not render preview. Please download the file.</p>
+                            </div>`;
+                    });
+
             } else {
-                content =
-                    `<div class="text-center py-5"><i class="bi bi-file-earmark-x display-1 text-muted"></i><h5 class="mt-3">Preview Not Supported</h5><p>Please download the file instead.</p></div>`;
+                body.innerHTML = `
+                    <div class="text-center py-5">
+                        <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+                        <p class="mt-3 text-muted">No preview available for .${ext} files.</p>
+                        <p class="small text-muted">Please use the download button below.</p>
+                    </div>`;
             }
 
-            modalBody.innerHTML = content;
-            new bootstrap.Modal(document.getElementById('filePreviewModal')).show();
+            new bootstrap.Modal(document.getElementById('attachmentModal')).show();
         }
     </script>
 @endpush

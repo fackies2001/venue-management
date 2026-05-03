@@ -130,7 +130,7 @@
         </div>
     </div>
 
-    {{-- Booking Detail Modal --}}
+    {{--  Booking Detail Modal --}}
     <div class="modal fade" id="detailModal" tabindex="-1">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
@@ -160,6 +160,8 @@
 
                 <div class="modal-body px-4 py-3" style="background:#fff;">
                     <div class="row g-3">
+
+                        {{-- LEFT: Event Info --}}
                         <div class="col-md-6">
                             <div class="p-3 rounded-3 h-100" style="background:#f8f9fa; border:1px solid #e9ecef;">
                                 <p class="fw-bold mb-3"
@@ -190,13 +192,19 @@
                                     <div class="detail-label">Participants</div>
                                     <div class="detail-value" id="dParticipants"></div>
                                 </div>
-                                <div class="detail-row" style="border-bottom:none;">
+                                <div class="detail-row">
                                     <div class="detail-label">Remarks</div>
                                     <div class="detail-value" id="dRemarks"></div>
+                                </div>
+                                {{--  Attachment row --}}
+                                <div class="detail-row" style="border-bottom:none;">
+                                    <div class="detail-label">Attachment</div>
+                                    <div class="detail-value" id="dAttachment"></div>
                                 </div>
                             </div>
                         </div>
 
+                        {{-- RIGHT: Processing Info --}}
                         <div class="col-md-6 d-flex flex-column gap-3">
                             <div class="p-3 rounded-3" style="background:#f8f9fa; border:1px solid #e9ecef;">
                                 <p class="fw-bold mb-3"
@@ -213,6 +221,7 @@
                                 </div>
                             </div>
                         </div>
+
                     </div>
                 </div>
 
@@ -221,38 +230,13 @@
                         <i class="bi bi-x-circle me-1"></i>Close
                     </button>
                 </div>
+
             </div>
         </div>
     </div>
+    {{--  END detailModal --}}
 
-    @php
-        $bookingsJson = $history->map(
-            fn($b) => [
-                'id' => $b->id,
-                'event_title' => $b->event_title,
-                'venue' => $b->venue->name ?? 'Deleted Venue',
-                'event_date' => $b->event_date->format('F d, Y'),
-                'start_time' => \Carbon\Carbon::parse($b->start_time)->format('h:i A'),
-                'end_time' => \Carbon\Carbon::parse($b->end_time)->format('h:i A'),
-                'agenda' => $b->agenda ?? '—',
-                'expected_attendees' => $b->expected_attendees ?? '—',
-                'remarks' => $b->remarks ?? '—',
-                'status' => ucfirst($b->status),
-                'status_class' => $b->statusBadgeClass(),
-                'approved_by' => $b->approvedBy->name ?? '—',
-                'approved_at' => $b->approved_at ? $b->approved_at->format('M d, Y h:i A') : '—',
-                'admin_remarks' => $b->admin_remarks ?? '—',
-                'attachment_path' => $b->attachment_path ? Storage::url($b->attachment_path) : null,
-                'attachment_name' => $b->attachment_path ? basename($b->attachment_path) : null,
-            ],
-        );
-    @endphp
-
-    <script>
-        const bookingsData = @json($bookingsJson);
-    </script>
-
-    {{-- Attachment Preview Modal --}}
+    {{--  Attachment Preview Modal --}}
     <div class="modal fade" id="attachmentModal" tabindex="-1" style="z-index:1060;">
         <div class="modal-dialog modal-lg modal-dialog-centered">
             <div class="modal-content border-0 shadow-lg" style="border-radius:16px; overflow:hidden;">
@@ -280,7 +264,36 @@
             </div>
         </div>
     </div>
-    
+    {{--  END attachmentModal --}}
+
+    {{-- Pass booking data to JS --}}
+    @php
+        $bookingsJson = $history->map(
+            fn($b) => [
+                'id' => $b->id,
+                'event_title' => $b->event_title,
+                'venue' => $b->venue->name ?? 'Deleted Venue',
+                'event_date' => $b->event_date->format('F d, Y'),
+                'start_time' => \Carbon\Carbon::parse($b->start_time)->format('h:i A'),
+                'end_time' => \Carbon\Carbon::parse($b->end_time)->format('h:i A'),
+                'agenda' => $b->agenda ?? '—',
+                'expected_attendees' => $b->expected_attendees ?? '—',
+                'remarks' => $b->remarks ?? '—',
+                'status' => ucfirst($b->status),
+                'status_class' => $b->statusBadgeClass(),
+                'approved_by' => $b->approvedBy->name ?? '—',
+                'approved_at' => $b->approved_at ? $b->approved_at->format('M d, Y h:i A') : '—',
+                'admin_remarks' => $b->admin_remarks ?? '—',
+                'attachment_path' => $b->attachment_path ? Storage::url($b->attachment_path) : null,
+                'attachment_name' => $b->attachment_path ? basename($b->attachment_path) : null,
+            ],
+        );
+    @endphp
+
+    <script>
+        const bookingsData = @json($bookingsJson);
+    </script>
+
 @endsection
 
 @push('scripts')
@@ -332,12 +345,11 @@
             document.getElementById('dProcessed').textContent = b.approved_at;
             document.getElementById('dAdminRemarks').textContent = b.admin_remarks;
 
-            // Attachment
+            //  Attachment handler
             const attachEl = document.getElementById('dAttachment');
             if (b.attachment_path && b.attachment_name) {
-                const ext = b.attachment_name.split('.').pop().toLowerCase();
                 attachEl.innerHTML = `
-                    <a href="#" onclick="openAttachmentPreview('${b.attachment_path}', '${b.attachment_name}', '${ext}'); return false;"
+                    <a href="#" onclick="openAttachmentPreview('${b.attachment_path}', '${b.attachment_name}', '${b.attachment_name.split('.').pop().toLowerCase()}'); return false;"
                         class="text-primary" style="font-size:.9rem; text-decoration:none;">
                         <i class="bi bi-paperclip me-1"></i>View Attachment
                     </a>`;
@@ -345,8 +357,8 @@
                 attachEl.textContent = '—';
             }
 
-            const modal = new bootstrap.Modal(document.getElementById('detailModal'));
-            modal.show();
+            //  FIXED: modal.show() is INSIDE showDetail, not outside
+            new bootstrap.Modal(document.getElementById('detailModal')).show();
         }
 
         function openAttachmentPreview(filePath, fileName, ext) {
@@ -366,12 +378,10 @@
                         <img src="${filePath}" alt="${fileName}"
                             style="max-width:100%; max-height:70vh; border-radius:8px; object-fit:contain;">
                     </div>`;
-
             } else if (ext === 'pdf') {
                 body.innerHTML = `
                     <iframe src="${filePath}#toolbar=0" width="100%"
                         style="height:70vh; border:none; border-radius:8px;"></iframe>`;
-
             } else if (['doc', 'docx'].includes(ext)) {
                 body.innerHTML = `
                     <div id="mammoth-attach-output"
@@ -381,7 +391,6 @@
                             <i class="bi bi-hourglass-split me-1"></i>Rendering document...
                         </div>
                     </div>`;
-
                 fetch(filePath)
                     .then(res => res.arrayBuffer())
                     .then(buffer => mammoth.convertToHtml({
@@ -398,7 +407,6 @@
                                 <p class="mt-2">Could not render preview. Please download the file.</p>
                             </div>`;
                     });
-
             } else if (['xls', 'xlsx'].includes(ext)) {
                 body.innerHTML = `
                     <div id="xlsx-preview-output"
@@ -408,7 +416,6 @@
                             <i class="bi bi-hourglass-split me-1"></i>Rendering spreadsheet...
                         </div>
                     </div>`;
-
                 fetch(filePath)
                     .then(res => res.arrayBuffer())
                     .then(buffer => {
@@ -424,7 +431,7 @@
                             <style>
                                 #xlsx-preview-output table { border-collapse:collapse; width:100%; font-size:.82rem; }
                                 #xlsx-preview-output td, #xlsx-preview-output th {
-                                    border: 1px solid #dee2e6; padding: .35rem .6rem; white-space: nowrap;
+                                    border:1px solid #dee2e6; padding:.35rem .6rem; white-space:nowrap;
                                 }
                                 #xlsx-preview-output tr:nth-child(even) { background:#f8f9fa; }
                                 #xlsx-preview-output tr:first-child { background:#212529; color:#fff; font-weight:600; }
@@ -438,7 +445,6 @@
                                 <p class="mt-2">Could not render preview. Please download the file.</p>
                             </div>`;
                     });
-
             } else {
                 body.innerHTML = `
                     <div class="text-center py-5">

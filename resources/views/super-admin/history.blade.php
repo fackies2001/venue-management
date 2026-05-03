@@ -338,9 +338,7 @@
                     </div>
                     <button type="button" class="btn-close btn-close-white" data-bs-dismiss="modal"></button>
                 </div>
-                <div class="modal-body p-3" id="attachmentModalBody" style="background:#f8f9fa; min-height:200px;">
-                    {{-- content injected by JS --}}
-                </div>
+                <div class="modal-body p-3" id="attachmentModalBody" style="background:#f8f9fa; min-height:200px;"></div>
                 <div class="modal-footer px-4 py-2" style="background:#f8f9fa; border-top:1px solid #e9ecef;">
                     <a id="attachmentDownloadBtn" href="#" download class="btn btn-sm btn-outline-primary px-3">
                         <i class="bi bi-download me-1"></i>Download
@@ -386,6 +384,7 @@
             });
         });
 
+
         function showDetail(id) {
             const b = bookingsData.find(x => x.id === id);
             if (!b) return;
@@ -409,18 +408,18 @@
             document.getElementById('dProcessed').textContent = b.approved_at;
             document.getElementById('dAdminRemarks').textContent = b.admin_remarks;
 
-            // Attachment — clean link format
+            //  CHANGED: Attachment — uses offline-capable preview (mammoth.js / SheetJS)
             const attachEl = document.getElementById('dAttachment');
             if (b.attachment_path && b.attachment_name) {
-                const ext = b.attachment_name.split('.').pop().toLowerCase();
                 attachEl.innerHTML = `
-                    <a href="#" onclick="openAttachmentPreview('${b.attachment_path}', '${b.attachment_name}', '${ext}'); return false;"
-                        class="text-primary" style="font-size:.9rem; text-decoration:none;">
-                        <i class="bi bi-paperclip me-1"></i>View Attachment
-                    </a>`;
+        <a href="#" onclick="openAttachmentPreview('${b.attachment_path}', '${b.attachment_name}', '${b.attachment_name.split('.').pop().toLowerCase()}'); return false;"
+            class="text-primary" style="font-size:.9rem; text-decoration:none;">
+            <i class="bi bi-paperclip me-1"></i>View Attachment
+        </a>`;
             } else {
                 attachEl.textContent = '—';
             }
+
 
             const modal = new bootstrap.Modal(document.getElementById('detailModal'));
             modal.show();
@@ -432,32 +431,32 @@
 
             const body = document.getElementById('attachmentModalBody');
             body.innerHTML = `
-                <div class="text-center py-5">
-                    <div class="spinner-border text-primary" role="status"></div>
-                    <p class="mt-2 text-muted small">Loading...</p>
-                </div>`;
+        <div class="text-center py-5">
+            <div class="spinner-border text-primary" role="status"></div>
+            <p class="mt-2 text-muted small">Loading...</p>
+        </div>`;
 
             if (['jpg', 'jpeg', 'png', 'gif', 'webp'].includes(ext)) {
                 body.innerHTML = `
-                    <div class="text-center">
-                        <img src="${filePath}" alt="${fileName}"
-                            style="max-width:100%; max-height:70vh; border-radius:8px; object-fit:contain;">
-                    </div>`;
+            <div class="text-center">
+                <img src="${filePath}" alt="${fileName}"
+                    style="max-width:100%; max-height:70vh; border-radius:8px; object-fit:contain;">
+            </div>`;
 
             } else if (ext === 'pdf') {
                 body.innerHTML = `
-                    <iframe src="${filePath}#toolbar=0" width="100%"
-                        style="height:70vh; border:none; border-radius:8px;"></iframe>`;
+            <iframe src="${filePath}#toolbar=0" width="100%"
+                style="height:70vh; border:none; border-radius:8px;"></iframe>`;
 
             } else if (['doc', 'docx'].includes(ext)) {
                 body.innerHTML = `
-                    <div id="mammoth-attach-output"
-                        style="background:#fff; border-radius:8px; padding:1rem;
-                               max-height:70vh; overflow-y:auto; font-size:.9rem; line-height:1.7;">
-                        <div class="text-muted small text-center py-3">
-                            <i class="bi bi-hourglass-split me-1"></i>Rendering document...
-                        </div>
-                    </div>`;
+            <div id="mammoth-attach-output"
+                style="background:#fff; border-radius:8px; padding:1rem;
+                       max-height:70vh; overflow-y:auto; font-size:.9rem; line-height:1.7;">
+                <div class="text-muted small text-center py-3">
+                    <i class="bi bi-hourglass-split me-1"></i>Rendering document...
+                </div>
+            </div>`;
 
                 fetch(filePath)
                     .then(res => res.arrayBuffer())
@@ -470,21 +469,21 @@
                     })
                     .catch(() => {
                         document.getElementById('mammoth-attach-output').innerHTML = `
-                            <div class="text-center py-4 text-danger">
-                                <i class="bi bi-exclamation-circle display-4"></i>
-                                <p class="mt-2">Could not render preview. Please download the file.</p>
-                            </div>`;
+                    <div class="text-center py-4 text-danger">
+                        <i class="bi bi-exclamation-circle display-4"></i>
+                        <p class="mt-2">Could not render preview. Please download the file.</p>
+                    </div>`;
                     });
 
             } else if (['xls', 'xlsx'].includes(ext)) {
                 body.innerHTML = `
-                    <div id="xlsx-preview-output"
-                        style="background:#fff; border-radius:8px; padding:1rem;
-                               max-height:70vh; overflow:auto; font-size:.88rem;">
-                        <div class="text-muted small text-center py-3">
-                            <i class="bi bi-hourglass-split me-1"></i>Rendering spreadsheet...
-                        </div>
-                    </div>`;
+            <div id="xlsx-preview-output"
+                style="background:#fff; border-radius:8px; padding:1rem;
+                       max-height:70vh; overflow:auto; font-size:.88rem;">
+                <div class="text-muted small text-center py-3">
+                    <i class="bi bi-hourglass-split me-1"></i>Rendering spreadsheet...
+                </div>
+            </div>`;
 
                 fetch(filePath)
                     .then(res => res.arrayBuffer())
@@ -498,40 +497,33 @@
                             footer: ''
                         });
                         document.getElementById('xlsx-preview-output').innerHTML = `
-                            <style>
-                                #xlsx-preview-output table { border-collapse:collapse; width:100%; font-size:.82rem; }
-                                #xlsx-preview-output td, #xlsx-preview-output th {
-                                    border: 1px solid #dee2e6;
-                                    padding: .35rem .6rem;
-                                    white-space: nowrap;
-                                }
-                                #xlsx-preview-output tr:nth-child(even) { background:#f8f9fa; }
-                                #xlsx-preview-output tr:first-child {
-                                    background:#212529;
-                                    color:#fff;
-                                    font-weight:600;
-                                }
-                            </style>
-                            ${html}`;
+                    <style>
+                        #xlsx-preview-output table { border-collapse:collapse; width:100%; font-size:.82rem; }
+                        #xlsx-preview-output td, #xlsx-preview-output th {
+                            border: 1px solid #dee2e6; padding: .35rem .6rem; white-space: nowrap;
+                        }
+                        #xlsx-preview-output tr:nth-child(even) { background:#f8f9fa; }
+                        #xlsx-preview-output tr:first-child { background:#212529; color:#fff; font-weight:600; }
+                    </style>
+                    ${html}`;
                     })
                     .catch(() => {
                         document.getElementById('xlsx-preview-output').innerHTML = `
-                            <div class="text-center py-4 text-danger">
-                                <i class="bi bi-exclamation-circle display-4"></i>
-                                <p class="mt-2">Could not render preview. Please download the file.</p>
-                            </div>`;
+                    <div class="text-center py-4 text-danger">
+                        <i class="bi bi-exclamation-circle display-4"></i>
+                        <p class="mt-2">Could not render preview. Please download the file.</p>
+                    </div>`;
                     });
 
             } else {
                 body.innerHTML = `
-                    <div class="text-center py-5">
-                        <i class="bi bi-file-earmark-x display-1 text-muted"></i>
-                        <p class="mt-3 text-muted">No preview available for .${ext} files.</p>
-                        <p class="small text-muted">Please use the download button below.</p>
-                    </div>`;
+            <div class="text-center py-5">
+                <i class="bi bi-file-earmark-x display-1 text-muted"></i>
+                <p class="mt-3 text-muted">No preview available for .${ext} files.</p>
+                <p class="small text-muted">Please use the download button below.</p>
+            </div>`;
             }
 
-            // Close detail modal first, then open attachment modal
             bootstrap.Modal.getInstance(document.getElementById('detailModal'))?.hide();
             setTimeout(() => {
                 new bootstrap.Modal(document.getElementById('attachmentModal')).show();
