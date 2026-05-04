@@ -128,22 +128,21 @@
                                 {{-- UPDATED: Now points to the division name --}}
                                 <td>{{ $user->division->name ?? '—' }}</td>
 
-                                {{-- PALITAN YUNG DATI NG GANITO --}}
-                                <td class="text-center">
+                                {{-- STATUS COLUMN --}}
+                                <td class="text-center"> {{-- ← ADD THIS --}}
                                     @if (!$user->is_active)
                                         <span class="badge bg-danger">Deactivated</span>
                                     @elseif (is_null($user->email_verified_at))
                                         <span class="badge bg-secondary">Unverified</span>
+                                    @elseif ($user->isPending())
+                                        <span class="badge bg-warning text-dark">Pending</span>
+                                    @elseif ($user->isRejected())
+                                        <span class="badge bg-dark">Rejected</span>
                                     @else
-                                        {{-- Ginamit natin ang bg-success para siguradong litaw ang kulay --}}
                                         <span class="badge bg-success">Active</span>
                                     @endif
                                 </td>
                                 {{-- END STATUS COLUMN --}}
-
-                                {{-- <td data-order="{{ $user->created_at->timestamp }}">
-                                    {{ $user->created_at->format('M d, Y') }}
-                                </td> --}}
 
                                 <td class="text-center">
                                     <div class="d-flex justify-content-center gap-1 flex-wrap">
@@ -178,6 +177,27 @@
                                                 <button type="button" class="btn btn-sm btn-outline-success px-2"
                                                     onclick="confirmActivate({{ $user->id }}, '{{ addslashes($user->name) }}')">
                                                     <i class="bi bi-person-check me-1"></i>Activate
+                                                </button>
+                                            </form>
+                                        @endif
+
+                                        {{-- Approve / Reject (For Pending Users Only) --}}
+                                        @if ($user->isPending())
+                                            <form method="POST" id="approveForm{{ $user->id }}"
+                                                action="{{ route('super-admin.users.approve', $user) }}">
+                                                @csrf @method('PATCH')
+                                                <button type="button" class="btn btn-sm btn-outline-success px-2"
+                                                    onclick="confirmApprove({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                                                    <i class="bi bi-check-circle me-1"></i>Approve
+                                                </button>
+                                            </form>
+
+                                            <form method="POST" id="rejectForm{{ $user->id }}"
+                                                action="{{ route('super-admin.users.user-reject', $user) }}">
+                                                @csrf @method('PATCH')
+                                                <button type="button" class="btn btn-sm btn-outline-danger px-2"
+                                                    onclick="confirmReject({{ $user->id }}, '{{ addslashes($user->name) }}')">
+                                                    <i class="bi bi-x-circle me-1"></i>Reject
                                                 </button>
                                             </form>
                                         @endif
@@ -235,6 +255,45 @@
                 }
             });
         });
+
+
+        // ── SweetAlert: Approve ────────────────────────────────
+        function confirmApprove(id, name) {
+            Swal.fire({
+                title: 'Approve User?',
+                html: `Are you sure you want to approve <strong>${name}</strong>?<br><span class="text-muted small">They will now have access to the system.</span>`,
+                icon: 'question',
+                showCancelButton: true,
+                confirmButtonColor: '#28a745',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-check-circle me-1"></i> Yes, Approve',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('approveForm' + id).submit();
+                }
+            });
+        }
+
+        // ── SweetAlert: Reject ──────────────────────────────────
+        function confirmReject(id, name) {
+            Swal.fire({
+                title: 'Reject User?',
+                html: `Are you sure you want to reject <strong>${name}</strong>?<br><span class="text-danger small">They will be denied access to the system.</span>`,
+                icon: 'warning',
+                showCancelButton: true,
+                confirmButtonColor: '#dc3545',
+                cancelButtonColor: '#6c757d',
+                confirmButtonText: '<i class="bi bi-x-circle me-1"></i> Yes, Reject',
+                cancelButtonText: 'Cancel',
+                reverseButtons: true,
+            }).then((result) => {
+                if (result.isConfirmed) {
+                    document.getElementById('rejectForm' + id).submit();
+                }
+            });
+        }
 
         // ── SweetAlert: Deactivate ──────────────────────────────
         function confirmDeactivate(id, name) {

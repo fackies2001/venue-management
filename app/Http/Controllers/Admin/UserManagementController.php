@@ -161,4 +161,19 @@ class UserManagementController extends Controller
         return redirect()->route('super-admin.users.index')
             ->with('success', 'User deleted.');
     }
+
+    public function approve(User $user)
+    {
+        $user->update([
+            'is_approved' => User::APPROVAL_APPROVED,
+            'is_active'   => true, // i-activate 
+        ]);
+        return back()->with('success', $user->name . ' has been approved and can now access the system.');
+    }
+
+    public function reject(User $user)
+    {
+        $user->update(['is_approved' => \App\Models\User::APPROVAL_REJECTED]);
+        return back()->with('success', $user->name . ' has been rejected.');
+    }
 }

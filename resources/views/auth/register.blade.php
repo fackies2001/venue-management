@@ -332,7 +332,8 @@
             const hasSpecial = /[\W_]/.test(pw);
 
             const isPasswordStrong = hasLength && hasLetter && hasNumber && hasSpecial;
-            const isEmailValid = email.toLowerCase().endsWith('@gmail.com');
+            const isEmailValid = email.toLowerCase().endsWith('@gmail.com') || email.toLowerCase().endsWith(
+                '@ocd.gov.ph');
 
             if (!isEmailValid || pw !== cpw || !isPasswordStrong) {
                 e.preventDefault();

@@ -36,9 +36,8 @@ Route::get('/email/verify/{id}/{hash}', function (Request $request, $id, $hash) 
     if (! $user->hasVerifiedEmail()) {
         $user->markEmailAsVerified();
         event(new Verified($user));
+        // is_active stays false until super admin approves
 
-        // Directly activate
-        $user->update(['is_active' => true]);
     }
 
     return redirect()->route('login')
@@ -60,9 +59,13 @@ Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 Route::get('/register',  [RegisterController::class, 'showRegistrationForm'])->name('register');
 Route::post('/register', [RegisterController::class, 'register']);
 
+Route::get('/approval-pending', [LoginController::class, 'approvalPending'])
+    ->middleware('auth')
+    ->name('approval.pending');
+
 
 // ── Profile Routes ──────────────────────────────────────────
-Route::middleware(['auth', 'verified'])->group(function () {
+Route::middleware(['auth', 'verified', 'approved'])->group(function () {
     Route::get('/profile',           [ProfileController::class, 'edit'])->name('profile.edit');
     Route::put('/profile',           [ProfileController::class, 'update'])->name('profile.update');
     Route::put('/profile/password',  [ProfileController::class, 'updatePassword'])->name('profile.password');
@@ -70,7 +73,7 @@ Route::middleware(['auth', 'verified'])->group(function () {
 
 
 // ── Regular User Routes ───────────────────────────────────────
-Route::middleware(['auth', 'verified', 'role:user'])->prefix('dashboard')->name('user.')->group(function () {
+Route::middleware(['auth', 'verified', 'approved', 'role:user'])->prefix('dashboard')->name('user.')->group(function () {
     Route::get('/', fn() => redirect()->route('user.calendar'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
@@ -86,7 +89,7 @@ Route::middleware(['auth', 'verified', 'role:user'])->prefix('dashboard')->name(
 });
 
 // ── Admin Routes ──────────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'approved', 'role:admin'])->prefix('admin')->name('admin.')->group(function () {
     Route::get('/', fn() => redirect()->route('admin.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
@@ -106,7 +109,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
 
 
 // ── Super Admin Routes ────────────────────────────────────────
-Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
+Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->prefix('super-admin')->name('super-admin.')->group(function () {
     Route::get('/', fn() => redirect()->route('super-admin.bookings.index'))->name('dashboard');
     Route::get('/calendar',        [VenueCalendarController::class, 'index'])->name('calendar');
     Route::get('/calendar/events', [VenueCalendarController::class, 'events'])->name('calendar.events');
@@ -136,6 +139,8 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin
     Route::patch('/users/{user}/activate',     [UserManagementController::class, 'activate'])->name('users.activate');
     Route::patch('/users/{user}/deactivate',   [UserManagementController::class, 'deactivate'])->name('users.deactivate');
     Route::delete('/users/{user}',             [UserManagementController::class, 'destroy'])->name('users.destroy');
+    Route::patch('/users/{user}/approve', [UserManagementController::class, 'approve'])->name('users.approve');
+    Route::patch('/users/{user}/reject', [UserManagementController::class, 'reject'])->name('users.user-reject');
 
     // Division management
     Route::resource('divisions', DivisionController::class)->except(['show', 'create', 'edit']);

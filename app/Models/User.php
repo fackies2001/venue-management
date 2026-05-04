@@ -11,9 +11,15 @@ class User extends Authenticatable implements MustVerifyEmail
 {
     use HasFactory, Notifiable;
 
+    // Role constants
     const ROLE_USER         = 'user';
     const ROLE_ADMIN        = 'admin';
     const ROLE_SUPER_ADMIN  = 'super_admin';
+
+    // Approval status constants
+    const APPROVAL_PENDING  = 'pending';
+    const APPROVAL_APPROVED = 'approved';
+    const APPROVAL_REJECTED = 'rejected';
 
     protected $fillable = [
         'name',
@@ -22,6 +28,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'role',
         'contact_number',
         'is_active',
+        'is_approved',
         'division_id',
     ];
 
@@ -35,6 +42,25 @@ class User extends Authenticatable implements MustVerifyEmail
         'password'          => 'hashed',
         'is_active'         => 'boolean',
     ];
+
+    // ── Approval helper methods ───────────────────────────────
+
+    public function isPending(): bool
+    {
+        return $this->is_approved === self::APPROVAL_PENDING;
+    }
+
+    public function isApproved(): bool
+    {
+        return $this->is_approved === self::APPROVAL_APPROVED;
+    }
+
+    public function isRejected(): bool
+    {
+        return $this->is_approved === self::APPROVAL_REJECTED;
+    }
+
+    // ── Role helper methods ───────────────────────────────────
 
     public function isUser(): bool
     {
@@ -51,11 +77,12 @@ class User extends Authenticatable implements MustVerifyEmail
         return $this->role === self::ROLE_SUPER_ADMIN;
     }
 
+    // ── Relationships ─────────────────────────────────────────
+
     public function bookings()
     {
         return $this->hasMany(Booking::class);
     }
-
 
     public function division()
     {

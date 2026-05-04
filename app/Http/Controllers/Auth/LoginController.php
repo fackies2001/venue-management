@@ -31,19 +31,15 @@ class LoginController extends Controller
 
         $request->session()->regenerate();
 
-        // ✅ FIXED: Check if email is verified, BUT respect the email link
+        // Check if email is verified
         if (! Auth::user()->hasVerifiedEmail()) {
-
-            // Kung galing sila sa email link, ibalik natin sila doon para ma-process yung verification
             if (session()->has('url.intended') && str_contains(session('url.intended'), '/email/verify/')) {
                 return redirect()->intended();
             }
-
-            // Kung normal login lang at hindi galing sa email link, ibato sa verification notice page
             return redirect()->route('verification.notice');
         }
 
-        // ✅ Check if account is active
+        // Check if account is active (deactivated by admin)
         if (! Auth::user()->is_active) {
             Auth::logout();
             $request->session()->invalidate();
@@ -51,6 +47,21 @@ class LoginController extends Controller
             return redirect()->route('login')
                 ->with('error', 'Your account has been deactivated. Please contact the administrator.');
         }
+
+        // Check if account is still pending approval
+        if (Auth::user()->isPending()) {
+            return redirect()->route('approval.pending');
+        }
+
+        // Check if account has been rejected
+        if (Auth::user()->isRejected()) {
+            Auth::logout();
+            $request->session()->invalidate();
+            $request->session()->regenerateToken();
+            return redirect()->route('login')
+                ->with('error', 'Your account has been rejected. Please contact the administrator.');
+        }
+
         return $this->redirectByRole(Auth::user());
     }
 
@@ -71,5 +82,10 @@ class LoginController extends Controller
             User::ROLE_SUPER_ADMIN => redirect()->route('super-admin.dashboard'),
             default                => redirect()->route('user.dashboard'),
         };
+    }
+
+    public function approvalPending()
+    {
+        return view('auth.approval-pending');
     }
 }
