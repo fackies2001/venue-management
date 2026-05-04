@@ -99,6 +99,7 @@ Route::middleware(['auth', 'verified', 'role:admin'])->prefix('admin')->name('ad
     Route::delete('/bookings/{booking}',          [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
     Route::patch('/bookings/{booking}/approve',   [AdminBookingController::class, 'approve'])->name('bookings.approve');
     Route::patch('/bookings/{booking}/reject',    [AdminBookingController::class, 'reject'])->name('bookings.reject');
+    Route::patch('/bookings/{booking}/archive', [AdminBookingController::class, 'archive'])->name('bookings.archive');
     Route::patch('/bookings/{booking}/cancel',    [VenueBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('/history', [AdminBookingController::class, 'history'])->name('history');
 });
@@ -118,6 +119,7 @@ Route::middleware(['auth', 'verified', 'role:super_admin'])->prefix('super-admin
     Route::delete('/bookings/{booking}',          [AdminBookingController::class, 'destroy'])->name('bookings.destroy');
     Route::patch('/bookings/{booking}/approve',   [AdminBookingController::class, 'approve'])->name('bookings.approve');
     Route::patch('/bookings/{booking}/reject',    [AdminBookingController::class, 'reject'])->name('bookings.reject');
+    Route::patch('/bookings/{booking}/archive', [AdminBookingController::class, 'archive'])->name('bookings.archive');
     Route::patch('/bookings/{booking}/cancel',    [VenueBookingController::class, 'cancel'])->name('bookings.cancel');
     Route::get('/history', [AdminBookingController::class, 'history'])->name('history');
     Route::resource('buildings', BuildingController::class)->except(['show', 'create', 'edit']);

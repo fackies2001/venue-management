@@ -140,10 +140,10 @@
                                         {{--  CHANGED: Delete → Archive (soft delete) for admin role --}}
                                         @if (auth()->user()->role === 'admin')
                                             <form method="POST"
-                                                action="{{ route($prefix . '.bookings.destroy', $booking) }}"
+                                                action="{{ route($prefix . '.bookings.archive', $booking) }}"
                                                 class="d-inline"
                                                 onsubmit="return confirm('Archive this booking? It will be moved to the archive.')">
-                                                @csrf @method('DELETE')
+                                                @csrf @method('PATCH')
                                                 <button type="submit" class="btn btn-sm btn-outline-secondary py-0 px-2">
                                                     <i class="bi bi-archive me-1"></i>Archive
                                                 </button>

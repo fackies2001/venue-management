@@ -5,12 +5,12 @@ namespace App\Http\Controllers\Admin;
 use App\Http\Controllers\Controller;
 use Illuminate\Support\Facades\Mail;
 use Illuminate\Support\Facades\Storage;
-use App\Models\ActivityLog; 
+use App\Models\ActivityLog;
 use App\Models\Booking;
 use App\Models\Building;
 use App\Models\VenueEvent;
 use App\Models\Venue;
-use App\Models\Division;      
+use App\Models\Division;
 use Illuminate\Http\Request;
 use App\Mail\BookingApproved;
 use App\Mail\BookingCancelled;
@@ -122,6 +122,28 @@ class AdminBookingController extends Controller
 
         return redirect()->route($prefix . '.bookings.index')
             ->with('success', 'Booking updated successfully.');
+    }
+
+    public function archive(Booking $booking)
+    {
+        ActivityLog::record(
+            'archived',
+            $booking,
+            Auth::user()->name . ' archived booking "' . $booking->event_title . '"',
+            $booking->toSnapshot()
+        );
+
+        $booking->venueEvent()->delete();
+        $booking->delete(); // Soft delete
+
+        $prefix = match (auth()->user()->role) {
+            'admin'       => 'admin',
+            'super_admin' => 'super-admin',
+            default       => 'user',
+        };
+
+        return redirect()->route($prefix . '.bookings.index')
+            ->with('success', 'Booking archived successfully.');
     }
 
     public function destroy(Booking $booking)

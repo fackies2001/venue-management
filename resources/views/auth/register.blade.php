@@ -158,8 +158,8 @@
                     <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
                     <input type="email" name="email" id="emailInput"
                         class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}"
-                        placeholder="@gmail.com" pattern=".*@gmail\.com$" title="Only @gmail.com emails are allowed."
-                        required oninput="validateForm()">
+                        placeholder="@ocd.gov.ph" pattern=".*@(gmail\.com|ocd\.gov\.ph)$"
+                        title="Only @gmail.com or @ocd.gov.ph emails are allowed." required oninput="validateForm()">
                     <div id="emailFeedback" class="password-feedback" style="display: none;"></div>
                 </div>
 
@@ -256,13 +256,14 @@
             const submitBtn = document.getElementById('submitBtn');
             const reqList = document.getElementById('password-requirements');
 
-            let isEmailValid = email.toLowerCase().endsWith('@gmail.com');
+            let isEmailValid = email.toLowerCase().endsWith('@gmail.com') || email.toLowerCase().endsWith('@ocd.gov.ph');
 
             if (!isEmailValid && email.includes('@') && email.split('@')[1].length > 0) {
                 const domainTyped = email.toLowerCase().split('@')[1];
-                if (!"gmail.com".startsWith(domainTyped)) {
+                if (!"gmail.com".startsWith(domainTyped) && !"ocd.gov.ph".startsWith(domainTyped)) {
                     emailFeedback.style.display = 'flex';
-                    emailFeedback.innerHTML = '<i class="bi bi-x-circle-fill"></i> Only @gmail.com emails are allowed';
+                    emailFeedback.innerHTML =
+                        '<i class="bi bi-x-circle-fill"></i> Only @gmail.com or @ocd.gov.ph emails are allowed';
                     emailFeedback.className = 'password-feedback no-match';
                 } else {
                     emailFeedback.style.display = 'none';
