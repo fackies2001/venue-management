@@ -220,21 +220,6 @@
             background: #a8a8a8;
         }
 
-        .legend-toggle-btn {
-            font-size: 0.8rem;
-            font-weight: 600;
-            color: var(--ocd-dark);
-            border-color: #dee2e6;
-        }
-
-        .legend-toggle-btn:hover,
-        .legend-toggle-btn:focus {
-            background-color: #f8f9fa;
-            color: var(--ocd-orange);
-            border-color: var(--ocd-orange);
-            box-shadow: none;
-        }
-
         @media (max-width: 1200px) {
             .calendar-wrapper {
                 flex-direction: column;
@@ -279,13 +264,17 @@
         <div class="calendar-panel">
             <div class="card p-4">
 
-                {{-- Toolbar: Filters & Legend Toggle --}}
-                <div class="d-flex justify-content-between align-items-center mb-3 flex-wrap gap-2">
+                {{-- Booking Events Section --}}
+                <div class="mb-3">
+                    <h5 class="fw-bold mb-3"
+                        style="color: var(--ocd-dark); font-size: 1.1rem; border-bottom: 2px solid var(--ocd-orange); padding-bottom: 0.3rem;">
+                        <i class="bi bi-calendar-check me-2"></i>Booked Events
+                    </h5>
 
-                    {{-- Filters --}}
-                    <div class="d-flex gap-2 flex-wrap">
+                    {{-- Filters (Top, Side-by-Side) --}}
+                    <div class="d-flex flex-row gap-2 mb-3">
                         <select id="buildingFilter" class="form-select form-select-sm"
-                            style="max-width:200px; font-weight:500;">
+                            style="max-width: 200px; font-weight:500;">
                             <option value="">All Buildings</option>
                             @foreach ($buildings as $building)
                                 <option value="{{ $building->id }}">{{ $building->name }}</option>
@@ -293,7 +282,7 @@
                         </select>
 
                         <select id="venueFilter" class="form-select form-select-sm"
-                            style="max-width:220px; font-weight:500;">
+                            style="max-width: 220px; font-weight:500;">
                             <option value="">All Venues</option>
                             @foreach ($venues as $venue)
                                 <option value="{{ $venue->id }}" data-building="{{ $venue->building_id }}">
@@ -303,20 +292,11 @@
                         </select>
                     </div>
 
-                    {{-- Legend Toggle Button --}}
-                    <button class="btn btn-sm btn-outline-secondary legend-toggle-btn d-flex align-items-center gap-1"
-                        type="button" data-bs-toggle="collapse" data-bs-target="#venueLegend" aria-expanded="false"
-                        aria-controls="venueLegend">
-                        <i class="bi bi-palette-fill"></i> Toggle Color Legend
-                    </button>
-                </div>
-
-                {{-- Collapsible & Scrollable Legend --}}
-                <div class="collapse mb-3" id="venueLegend">
-                    <div class="legend-container">
+                    {{-- Legend (Bottom) --}}
+                    <div class="legend-container w-100 m-0" style="max-height: 160px;">
                         <div class="row row-cols-1 row-cols-md-2 row-cols-xl-3 g-3">
                             @foreach ($buildings as $building)
-                                <div class="col">
+                                <div class="col legend-building-group" data-building-id="{{ $building->id }}">
                                     <div class="fw-bold mb-2 border-bottom pb-1"
                                         style="color:var(--ocd-dark); font-size:.85rem;">
                                         {{ $building->name }}
@@ -429,8 +409,8 @@
                             <div class="mb-2">
                                 <label class="form-label">Time (Start – End) <span class="text-danger">*</span></label>
                                 <div class="d-flex gap-1">
-                                    <select name="start_time"
-                                        class="form-select @error('start_time') is-invalid @enderror" required>
+                                    <select name="start_time" class="form-select @error('start_time') is-invalid @enderror"
+                                        required>
                                         <option value="">Start</option>
                                         @foreach (generateTimeOptions() as $time)
                                             <option value="{{ $time['value'] }}"
@@ -479,7 +459,7 @@
                                             <option value="{{ $division->name }}"
                                                 {{ old('service') == $division->name ? 'selected' : '' }}>
                                                 {{ $division->name }}
-                                            </option>   
+                                            </option>
                                         @endforeach
                                     @endif
                                 </select>
@@ -626,8 +606,12 @@
 
                     events: function(info, successCb, failureCb) {
                         const venueId = document.getElementById('venueFilter').value;
+                        const buildingId = document.getElementById('buildingFilter')
+                        .value; // Kukunin natin yung selected building
+
+                        // Idinagdag natin ang &building_id=${buildingId} sa URL
                         fetch(
-                                `${eventsUrl}?start=${info.startStr}&end=${info.endStr}&venue_id=${venueId}`
+                                `${eventsUrl}?start=${info.startStr}&end=${info.endStr}&venue_id=${venueId}&building_id=${buildingId}`
                             )
                             .then(r => r.json())
                             .then(successCb)
@@ -676,6 +660,19 @@
                         if (!opt.value) return;
                         opt.hidden = buildingId ? opt.dataset.building !== buildingId : false;
                     });
+
+                    // Bagong logic para i-filter ang Legend Box
+                    const legendGroups = document.querySelectorAll('.legend-building-group');
+                    legendGroups.forEach(group => {
+                        if (!buildingId) {
+                            group.style.display = 'block'; // Ipakita lahat kapag "All Buildings"
+                        } else {
+                            // Ipakita lang kung nag-match ang ID ng building, itago kung hindi
+                            group.style.display = group.getAttribute('data-building-id') ===
+                                buildingId ? 'block' : 'none';
+                        }
+                    });
+
                     calendar.refetchEvents();
                 });
             }

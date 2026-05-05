@@ -39,6 +39,6 @@ class RegisterController extends Controller
         $user->sendEmailVerificationNotification();
 
         return redirect()->route('login')
-            ->with('success', 'Registration successful! Please check your email to verify your account before logging in.');
+            ->with('success', 'Please contact the administrator for the approval account.');
     }
 }

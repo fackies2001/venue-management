@@ -88,22 +88,46 @@ class VenueBookingController extends Controller
             'remarks'            => 'nullable|string',
         ]);
 
+        // 1. I-prepare ang Carbon instances para sa Time Check
+        $eventDate = $validated['event_date'];
+        $newStart  = \Carbon\Carbon::parse("$eventDate {$validated['start_time']}")->format('Y-m-d H:i:s');
+        $newEnd    = \Carbon\Carbon::parse("$eventDate {$validated['end_time']}")->format('Y-m-d H:i:s');
+
+        // 2. CHECK PARA SA OVERLAPPING BOOKING (The SweetAlert Trigger)
+        $isBooked = \App\Models\Booking::where('venue_id', $validated['venue_id'])
+            ->where('event_date', $eventDate)
+            ->whereIn('status', ['approved', 'pending']) // I-check ang active bookings[cite: 2]
+            ->where(function ($query) use ($newStart, $newEnd) {
+                $query->where('start_time', '<', $newEnd)
+                    ->where('end_time', '>', $newStart);
+            })
+            ->exists();
+
+        if ($isBooked) {
+            // Lalabas ang SweetAlert dito dahil sa 'error' session key
+            return back()
+                ->withInput()
+                ->with('error', 'the venue is already booked');
+        }
+
+        // 3. File Upload handling
         if ($request->hasFile('attachment_path')) {
             $file     = $request->file('attachment_path');
             $filename = time() . '_' . $file->getClientOriginalName();
             $validated['attachment_path'] = $file->storeAs('bookings/attachments', $filename, 'public');
         }
 
-        $eventDate               = $validated['event_date'];
-        $validated['start_time'] = Carbon::parse("$eventDate {$validated['start_time']}")->format('Y-m-d H:i:s');
-        $validated['end_time']   = Carbon::parse("$eventDate {$validated['end_time']}")->format('Y-m-d H:i:s');
+        // 4. Final Data Preparation
+        $validated['start_time'] = $newStart;
+        $validated['end_time']   = $newEnd;
         $validated['user_id']    = auth()->id();
-        $validated['status']     = Booking::STATUS_PENDING;
+        $validated['status']     = \App\Models\Booking::STATUS_PENDING;
 
-        $booking = Booking::create($validated);
+        // 5. Create Booking
+        $booking = \App\Models\Booking::create($validated);
 
-        // ── Log ──────────────────────────────────────────────
-        ActivityLog::record(
+        // Activity Log
+        \App\Models\ActivityLog::record(
             'created',
             $booking,
             auth()->user()->name . ' submitted new booking "' . $booking->event_title . '"',

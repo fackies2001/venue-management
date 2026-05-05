@@ -60,19 +60,24 @@
         }
 
         .btn-login {
-            background: var(--ocd-orange);
-            border: none;
-            color: #fff;
+            background-color: var(--ocd-orange) !important;
+            border: none !important;
+            color: #ffffff !important;
             font-weight: 600;
             width: 100%;
             padding: .65rem;
             border-radius: 8px;
-            transition: opacity .15s;
+            box-shadow: none !important;
         }
 
-        .btn-login:hover {
-            opacity: .9;
-            color: #fff;
+        .btn-login:hover,
+        .btn-login:active,
+        .btn-login:focus {
+            background-color: var(--ocd-orange) !important;
+            color: #ffffff !important;
+            opacity: 1 !important;
+            box-shadow: none !important;
+            outline: none !important;
         }
 
         .form-control:focus {

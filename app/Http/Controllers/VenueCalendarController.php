@@ -32,7 +32,13 @@ class VenueCalendarController extends Controller
             ->whereBetween('event_date', [$startDate, $endDate]);
 
         if ($venueId = $request->input('venue_id')) {
+            // Kung may specific venue na pinili
             $query->where('venue_id', $venueId);
+        } elseif ($buildingId = $request->input('building_id')) {
+            // Kung "All Venues" pero may piniling Building
+            $query->whereHas('venue', function ($q) use ($buildingId) {
+                $q->where('building_id', $buildingId);
+            });
         }
 
         $events = $query->get()->map(function ($booking) {
@@ -44,7 +50,7 @@ class VenueCalendarController extends Controller
             $startDisplay = date('h:i A', strtotime($booking->start_time));
             $endDisplay   = date('h:i A', strtotime($booking->end_time));
 
-            //  FIXED: Append Room/Floor to the venue name in the modal!
+            // FIXED: Append Room/Floor to the venue name in the modal!
             $venueName = $booking->venue ? $booking->venue->name : '—';
             if ($booking->venue && $booking->venue->room_floor) {
                 $venueName .= ' (' . $booking->venue->room_floor . ')';

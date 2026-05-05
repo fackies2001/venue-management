@@ -181,17 +181,11 @@
                 </div>
 
                 <div class="mb-3">
-                    <label class="form-label fw-semibold small">Contact Number</label>
-                    <input type="text" name="contact_number" class="form-control"
-                        value="{{ old('contact_number') }}" placeholder="09XXXXXXXXX">
-                </div>
-
-                <div class="mb-3">
                     <label class="form-label fw-semibold small">Password <span class="text-danger">*</span></label>
                     <div class="password-wrapper">
                         <input type="password" id="password" name="password"
                             class="form-control @error('password') is-invalid @enderror"
-                            placeholder="Minimum of eight(8) characters" required oninput="validateForm()">
+                            placeholder="Minimum of sixteen(16) characters" required oninput="validateForm()">
                         <button type="button" class="toggle-eye" onclick="toggleEye('password', 'eyeIcon1')"
                             tabindex="-1" aria-label="Toggle password visibility">
                             <i id="eyeIcon1" class="bi bi-eye"></i>
@@ -199,7 +193,7 @@
                     </div>
                     <ul id="password-requirements" class="list-unstyled mt-2 mb-0"
                         style="display: none; font-size: 0.78rem;">
-                        <li id="req-length" class="text-danger"><i class="bi bi-x-circle"></i> Minimum of 8 characters
+                        <li id="req-length" class="text-danger"><i class="bi bi-x-circle"></i> Minimum of 16 characters
                         </li>
                         <li id="req-letter" class="text-danger"><i class="bi bi-x-circle"></i> At least 1 letter</li>
                         <li id="req-number" class="text-danger"><i class="bi bi-x-circle"></i> At least 1 number</li>
@@ -278,7 +272,7 @@
                 reqList.style.display = 'none';
             }
 
-            const hasLength = pw.length >= 8;
+            const hasLength = pw.length >= 16;
             const hasLetter = /[a-zA-Z]/.test(pw);
             const hasNumber = /\d/.test(pw);
             const hasSpecial = /[\W_]/.test(pw);
@@ -294,7 +288,7 @@
                 }
             };
 
-            updateReqUI('req-length', hasLength, 'Minimum of 8 characters');
+            updateReqUI('req-length', hasLength, 'Minimum of 16 characters');
             updateReqUI('req-letter', hasLetter, 'At least 1 letter');
             updateReqUI('req-number', hasNumber, 'At least 1 number');
             updateReqUI('req-special', hasSpecial, 'At least 1 special character');
@@ -326,7 +320,7 @@
             const pw = document.getElementById('password').value;
             const cpw = document.getElementById('confirmPassword').value;
 
-            const hasLength = pw.length >= 8;
+            const hasLength = pw.length >= 16;
             const hasLetter = /[a-zA-Z]/.test(pw);
             const hasNumber = /\d/.test(pw);
             const hasSpecial = /[\W_]/.test(pw);
