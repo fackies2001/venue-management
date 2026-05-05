@@ -189,11 +189,11 @@
                                     <strong>{{ $booking->event_title }}</strong>.
                                     This will be sent to the requester via email.
                                 </p>
-                                <label class="form-label fw-semibold small">
-                                    Reason for Rejection <span class="text-danger">*</span>
+                                <label class="form-label fw-semibold small text-muted">
+                                    Reason for Rejection (Optional)
                                 </label>
-                                <textarea name="admin_remarks" class="form-control" rows="3" placeholder="e.g. Venue not available on this date…"
-                                    required style="border-radius:8px;font-size:.9rem;"></textarea>
+                                <textarea name="admin_remarks" class="form-control" rows="3" placeholder="e.g. Schedule Conflict..."
+                                    style="border-radius:8px;font-size:.9rem;"></textarea>
                             </div>
                             <div class="modal-footer" style="border-top:1px solid #f0f2f5;background:#fafbfc;">
                                 <button type="button" class="btn btn-sm btn-outline-secondary"

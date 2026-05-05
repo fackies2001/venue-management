@@ -204,8 +204,9 @@ class AdminBookingController extends Controller
 
     public function reject(Request $request, Booking $booking)
     {
+        // 1. Pinalitan natin ng 'nullable' imbes na 'required'
         $request->validate([
-            'admin_remarks' => ['required', 'string'],
+            'admin_remarks' => ['nullable', 'string'],
         ]);
 
         $booking->update([
@@ -220,7 +221,8 @@ class AdminBookingController extends Controller
             'rejected',
             $booking,
             Auth::user()->name . ' rejected booking "' . $booking->event_title . '"',
-            array_merge($booking->toSnapshot(), ['reason' => $request->input('admin_remarks')])
+            // 2. Naglagay tayo ng fallback text kapag walang nilagay na reason
+            array_merge($booking->toSnapshot(), ['reason' => $request->input('admin_remarks') ?? 'No reason provided'])
         );
 
         Mail::to($booking->user->email)->send(new BookingRejected($booking));
@@ -250,5 +252,38 @@ class AdminBookingController extends Controller
         $history = $query->latest('event_date')->get();
 
         return view('super-admin.history', compact('history'));
+    }
+
+    public function cancel(Request $request, Booking $booking)
+    {
+        // Ginawang nullable para optional lang ang reason
+        $request->validate([
+            'admin_remarks' => ['nullable', 'string'],
+        ]);
+
+        $booking->update([
+            'status'        => Booking::STATUS_CANCELLED,
+            'admin_remarks' => $request->input('admin_remarks'),
+            'approved_by'   => \Illuminate\Support\Facades\Auth::id(),
+            'approved_at'   => now(),
+        ]);
+
+        // Tanggalin ang event sa calendar
+        if ($booking->venueEvent) {
+            $booking->venueEvent()->delete();
+        }
+
+        // ── Log sa History ──────────────────────────────────────────
+        \App\Models\ActivityLog::record(
+            'cancelled',
+            $booking,
+            \Illuminate\Support\Facades\Auth::user()->name . ' cancelled booking "' . $booking->event_title . '"',
+            array_merge($booking->toSnapshot(), ['reason' => $request->input('admin_remarks') ?? 'No reason provided'])
+        );
+
+        // ── I-send ang Cancelled Email na ginawa mo ────────────────────────────────
+        \Illuminate\Support\Facades\Mail::to($booking->user->email)->send(new \App\Mail\BookingCancelled($booking));
+
+        return back()->with('success', 'Booking cancelled successfully.');
     }
 }

@@ -172,7 +172,7 @@
             </div>
 
             <div style="text-align: center;">
-                <span class="status-badge">STATUS: UNAVAILABLE</span>
+                <span class="status-badge">STATUS: CANCELLED</span>
             </div>
 
             <div class="details-card">
@@ -206,6 +206,11 @@
             <div class="footer-message">
                 We apologize for any inconvenience this may cause. You may log in to the system to submit a new request
                 with an alternative date or venue. If you have any questions, please contact the administrator.
+            </div>
+
+            <div style="margin-top: 30px; font-size: 0.95rem; color: #555; line-height: 1.5;">
+                Regards,<br>
+                <strong>ICTS-SDIMD</strong>
             </div>
         </div>
 

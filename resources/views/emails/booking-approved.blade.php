@@ -194,6 +194,11 @@
             <div class="footer-message">
                 If you have any concerns or need further assistance, please contact the administrator.
             </div>
+
+            <div style="margin-top: 30px; font-size: 0.95rem; color: #555; line-height: 1.5;">
+                Regards,<br>
+                <strong>ICTS-SDIMD</strong>
+            </div>
         </div>
 
         <div class="footer">
