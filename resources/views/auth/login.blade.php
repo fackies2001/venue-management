@@ -16,10 +16,8 @@
 
         body {
             min-height: 100vh;
-            /* Eto yung bago para sa background image */
             background: url('{{ asset('bgimg.jpg') }}') no-repeat center center fixed;
-            background-size: contain;
-
+            background-size: cover;
             display: flex;
             align-items: center;
             justify-content: center;
@@ -70,14 +68,8 @@
             box-shadow: none !important;
         }
 
-        .btn-login:hover,
-        .btn-login:active,
-        .btn-login:focus {
-            background-color: var(--ocd-orange) !important;
-            color: #ffffff !important;
-            opacity: 1 !important;
-            box-shadow: none !important;
-            outline: none !important;
+        .btn-login:hover {
+            opacity: 0.9;
         }
 
         .form-control:focus {
@@ -92,34 +84,23 @@
             margin: 1.5rem 0 1rem;
         }
 
-        a.register-link {
+        a.register-link,
+        .btn-link-custom {
             color: var(--ocd-blue);
             font-weight: 600;
             text-decoration: none;
         }
 
-        a.register-link:hover {
+        .btn-link-custom {
+            background: none;
+            border: none;
+            padding: 0;
+            font: inherit;
+            cursor: pointer;
+        }
+
+        .btn-link-custom:hover {
             text-decoration: underline;
-        }
-
-        .toggle-eye-btn {
-            background: transparent;
-            border: 1px solid #dee2e6;
-            border-left: none;
-            color: #888;
-            transition: color 0.15s;
-        }
-
-        .toggle-eye-btn:hover {
-            color: var(--ocd-blue);
-        }
-
-        .form-control-password {
-            border-right: none;
-        }
-
-        .form-control-password:focus+.toggle-eye-btn {
-            border-color: var(--ocd-blue);
         }
     </style>
 </head>
@@ -128,7 +109,7 @@
     <div class="login-card">
         <div class="login-header">
             <img src="{{ asset('OCDLOGO.png') }}" alt="OCD Logo">
-            <h4>Log In</h4>
+            <h4>{{ session('show_otp') ? 'Two-Factor Verification' : 'Log In' }}</h4>
             <p class="mb-0 small opacity-75">Venue Management System</p>
         </div>
         <div class="login-body">
@@ -138,7 +119,6 @@
                         class="bi bi-check-circle me-1"></i>{{ session('success') }}</div>
             @endif
 
-            {{--  FIXED: Eto yung sasalo ng error messages galing sa controller --}}
             @if (session('error'))
                 <div class="alert alert-danger py-2 small"><i
                         class="bi bi-exclamation-triangle me-1"></i>{{ session('error') }}</div>
@@ -149,43 +129,75 @@
                         class="bi bi-exclamation-circle me-1"></i>{{ $errors->first() }}</div>
             @endif
 
-            <form method="POST" action="{{ route('login') }}">
-                @csrf
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small">Email Address</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="bi bi-envelope text-secondary"></i></span>
-                        <input type="email" name="email" class="form-control @error('email') is-invalid @enderror"
-                            value="{{ old('email') }}" placeholder="Enter your gmail" required autofocus>
+            {{-- 1. KUNG MAY OTP FLAG, ITO ANG LALABAS --}}
+            @if (session('show_otp'))
+                <form method="POST" action="{{ route('otp.verify') }}">
+                    @csrf
+                    <div class="text-center mb-4">
+                        <div class="mb-3">
+                            <i class="bi bi-shield-lock text-primary" style="font-size: 3rem;"></i>
+                        </div>
+                        <p class="small text-muted">We've sent a 6-digit security code to your email. Please enter it
+                            below.</p>
                     </div>
-                </div>
 
-                <div class="mb-3">
-                    <label class="form-label fw-semibold small">Password</label>
-                    <div class="input-group">
-                        <span class="input-group-text bg-light"><i class="bi bi-lock text-secondary"></i></span>
-                        <input type="password" id="password" name="password" class="form-control form-control-password"
-                            placeholder="Password" required>
-                        <button type="button" class="input-group-text toggle-eye-btn" onclick="toggleEye()"
-                            tabindex="-1" aria-label="Toggle password visibility">
-                            <i id="eyeIcon" class="bi bi-eye"></i>
-                        </button>
+                    <div class="mb-3">
+                        <input type="text" name="otp_code" class="form-control text-center fw-bold"
+                            placeholder="· · · · · ·" maxlength="6" style="font-size: 1.5rem; letter-spacing: 5px;"
+                            required autofocus autocomplete="off">
                     </div>
+
+                    <button type="submit" class="btn btn-login mb-3">Verify Account</button>
+                </form>
+
+                {{-- Working Resend OTP Form --}}
+                <form method="POST" action="{{ route('otp.resend') }}" class="text-center">
+                    @csrf
+                    <div class="small">
+                        Didn't receive the code?
+                        <button type="submit" class="btn-link-custom">Resend OTP</button>
+                    </div>
+                </form>
+
+                {{-- 2. KUNG WALA PANG OTP, NORMAL LOGIN FORM --}}
+            @else
+                <form method="POST" action="{{ route('login') }}">
+                    @csrf
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Email Address</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-envelope text-secondary"></i></span>
+                            <input type="email" name="email" class="form-control" value="{{ old('email') }}"
+                                placeholder="Enter your email" required autofocus>
+                        </div>
+                    </div>
+
+                    <div class="mb-3">
+                        <label class="form-label fw-semibold small">Password</label>
+                        <div class="input-group">
+                            <span class="input-group-text bg-light"><i class="bi bi-lock text-secondary"></i></span>
+                            <input type="password" id="password" name="password" class="form-control"
+                                placeholder="Password" required>
+                            <button type="button" class="input-group-text" onclick="toggleEye()">
+                                <i id="eyeIcon" class="bi bi-eye"></i>
+                            </button>
+                        </div>
+                    </div>
+
+                    <div class="mb-4 form-check">
+                        <input type="checkbox" class="form-check-input" id="remember" name="remember">
+                        <label class="form-check-label small" for="remember">Remember me</label>
+                    </div>
+
+                    <button type="submit" class="btn btn-login">Log In</button>
+                </form>
+
+                <div class="divider"></div>
+                <div class="text-center small">
+                    Don't have an account?
+                    <a href="{{ route('register') }}" class="register-link">Register here</a>
                 </div>
-
-                <div class="mb-4 form-check">
-                    <input type="checkbox" class="form-check-input" id="remember" name="remember">
-                    <label class="form-check-label small" for="remember">Remember me</label>
-                </div>
-
-                <button type="submit" class="btn btn-login">Log In</button>
-            </form>
-
-            <div class="divider"></div>
-            <div class="text-center small">
-                Don't have an account?
-                <a href="{{ route('register') }}" class="register-link">Register here</a>
-            </div>
+            @endif
         </div>
     </div>
 

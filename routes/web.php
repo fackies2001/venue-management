@@ -16,6 +16,7 @@ use App\Http\Controllers\Admin\DivisionController;
 use App\Http\Controllers\Admin\BuildingController;
 use App\Http\Controllers\Admin\VenueController;
 use App\Http\Controllers\Admin\ArchiveController;
+use App\Http\Controllers\Auth\OtpController;
 // ── Email Verification Routes ─────────────────────────────────
 
 Route::get('/email/verify', function () {
@@ -144,4 +145,10 @@ Route::middleware(['auth', 'verified', 'approved', 'role:super_admin'])->prefix(
 
     // Division management
     Route::resource('divisions', DivisionController::class)->except(['show', 'create', 'edit']);
+
 });
+
+// ── 2FA OTP Routes ──────────────────────────────────────────────
+Route::get('/login/otp', [OtpController::class, 'index'])->name('otp.index');
+Route::post('/login/otp', [OtpController::class, 'verify'])->name('otp.verify');
+Route::post('/login/otp/resend', [OtpController::class, 'resend'])->name('otp.resend');
