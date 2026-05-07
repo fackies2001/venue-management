@@ -30,8 +30,9 @@ class User extends Authenticatable implements MustVerifyEmail
         'is_active',
         'is_approved',
         'division_id',
-        'otp_code',         
+        'otp_code',
         'otp_expires_at',
+        'last_login_at',
     ];
 
     protected $hidden = [
@@ -43,6 +44,7 @@ class User extends Authenticatable implements MustVerifyEmail
         'email_verified_at' => 'datetime',
         'password'          => 'hashed',
         'is_active'         => 'boolean',
+        'last_login_at'    =>  'datetime',
     ];
 
     // ── Approval helper methods ───────────────────────────────

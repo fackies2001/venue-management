@@ -30,11 +30,16 @@ class OtpController extends Controller
             return redirect()->route('login')->with('error', 'Session expired. Please login again.');
         }
 
-        // Check if OTP matches and is not expired
+        // Check if OTP matches
         if ($user->otp_code == $request->otp_code) {
 
-            // Clear OTP and authenticate user
-            $user->update(['otp_code' => null, 'otp_expires_at' => null]);
+
+            $user->update([
+                'otp_code' => null,
+                'otp_expires_at' => null,
+                'last_login_at' => now(),
+            ]);
+
             Auth::login($user);
             session()->forget('2fa_user_id');
 
@@ -44,13 +49,12 @@ class OtpController extends Controller
                 'super_admin' => 'super-admin',
                 default       => 'user',
             };
+
             return redirect()->route($prefix . '.dashboard');
         }
 
-        // KUNG MALI ANG OTP: Ibalik sa login page at ipakita ulit ang OTP form
         return back()->with('show_otp', true)->with('error', 'Invalid or expired OTP code.');
     }
-
     public function resend()
     {
         $user = User::find(session('2fa_user_id'));
@@ -65,7 +69,7 @@ class OtpController extends Controller
 
         \Illuminate\Support\Facades\Mail::to($user->email)->send(new \App\Mail\LoginOtpMail($otp));
 
-        // Ibalik sa login page at ipakita ulit ang OTP form
+        // Invalid otp, show error and keep on OTP page
         return back()->with('show_otp', true)->with('success', 'A new OTP has been sent to your email.');
     }
 }

@@ -9,40 +9,33 @@ use Illuminate\Validation\Rules\Password;
 
 class ProfileController extends Controller
 {
-    /**
-     * Show the profile edit form.
-     */
     public function edit()
     {
         return view('profile.edit', [
             'user' => Auth::user(),
+            'divisions' => \App\Models\Division::orderBy('name')->get(),
         ]);
     }
 
-    /**
-     * Update basic profile info.
-     */
     public function update(Request $request)
     {
         $user = Auth::user();
 
         $request->validate([
-            'name'           => ['required', 'string', 'max:255'],
-            'email'          => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
-            'department'     => ['nullable', 'string', 'max:255'],
-            'contact_number' => ['nullable', 'string', 'max:20'],
+            'name'        => ['required', 'string', 'max:255'],
+            'email'       => ['required', 'email', 'max:255', 'unique:users,email,' . $user->id],
+
+            'division_id' => ['required', 'exists:divisions,id'],
         ]);
 
         $emailChanged = $user->email !== $request->email;
 
         $user->update([
-            'name'           => $request->name,
-            'email'          => $request->email,
-            'department'     => $request->department,
-            'contact_number' => $request->contact_number,
+            'name'        => $request->name,
+            'email'       => $request->email,
+            'division_id' => $request->division_id,
         ]);
 
-        // If email changed, require re-verification
         if ($emailChanged) {
             $user->email_verified_at = null;
             $user->save();
@@ -55,14 +48,18 @@ class ProfileController extends Controller
         return back()->with('success', 'Profile updated successfully.');
     }
 
-    /**
-     * Update password.
-     */
     public function updatePassword(Request $request)
     {
         $request->validate([
             'current_password' => ['required'],
-            'password'         => ['required', 'confirmed', Password::min(8)],
+            'password'         => [
+                'required',
+                'confirmed',
+                Password::min(16) // Mandatory 16 characters
+                    ->letters()
+                    ->numbers()
+                    ->symbols()
+            ],
         ]);
 
         $user = Auth::user();

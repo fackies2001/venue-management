@@ -158,7 +158,7 @@
                     <label class="form-label fw-semibold small">Email Address <span class="text-danger">*</span></label>
                     <input type="email" name="email" id="emailInput"
                         class="form-control @error('email') is-invalid @enderror" value="{{ old('email') }}"
-                        placeholder="@ocd.gov.ph" pattern=".*@(gmail\.com|ocd\.gov\.ph)$"
+                        placeholder="" pattern=".*@(gmail\.com|ocd\.gov\.ph)$"
                         title="Only @gmail.com or @ocd.gov.ph emails are allowed." required oninput="validateForm()">
                     <div id="emailFeedback" class="password-feedback" style="display: none;"></div>
                 </div>

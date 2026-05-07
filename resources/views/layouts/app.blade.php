@@ -410,7 +410,7 @@
         });
     </script>
 
-    {{-- Global SweetAlert2 Toast Notifications --}}
+
     <script>
         document.addEventListener('DOMContentLoaded', function() {
             const Toast = Swal.mixin({
@@ -425,6 +425,7 @@
                 }
             });
 
+            {{-- 1. Success Notification --}}
             @if (session('success'))
                 Toast.fire({
                     icon: 'success',
@@ -432,15 +433,38 @@
                 });
             @endif
 
+            {{-- 2. General Error Notification --}}
             @if (session('error'))
                 Toast.fire({
                     icon: 'error',
                     title: "{{ session('error') }}"
                 });
             @endif
+
+            {{-- 3. Validation Errors Popup (Now in English) --}}
+            @if ($errors->any())
+                Swal.fire({
+                    icon: 'error',
+                    title: '<span style="color:var(--ocd-blue)">Invalid Input</span>',
+                    html: `
+                    <div class="text-start">
+                        <p class="fw-bold mb-2">Please correct the following errors:</p>
+                        <ul class="text-danger small">
+                            @foreach ($errors->all() as $error)
+                                <li>{{ $error }}</li>
+                            @endforeach
+                        </ul>
+                    </div>
+                `,
+                    confirmButtonColor: 'var(--ocd-blue)',
+                    confirmButtonText: 'Understood',
+                    customClass: {
+                        popup: 'rounded-4 shadow-lg'
+                    }
+                });
+            @endif
         });
     </script>
-
     @stack('scripts')
 </body>
 

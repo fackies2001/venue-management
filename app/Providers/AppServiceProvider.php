@@ -5,6 +5,8 @@ namespace App\Providers;
 use Illuminate\Support\ServiceProvider;
 use Illuminate\Auth\Notifications\VerifyEmail;
 use Illuminate\Notifications\Messages\MailMessage;
+use Illuminate\Auth\Event\Login;
+use Illuminate\Support\Facades\Event;
 
 class AppServiceProvider extends ServiceProvider
 {
@@ -12,7 +14,7 @@ class AppServiceProvider extends ServiceProvider
      * Register any application services.
      */
     public function register(): void
-    {
+    { 
         //
     }
 
@@ -28,6 +30,13 @@ class AppServiceProvider extends ServiceProvider
                     'url' => $url,
                     'user' => $notifiable,
                 ]);
+        });
+
+
+        Event::listen(Login::class, function ($event) {
+            $event->user->update([
+                'last_login_at' => now(),
+            ]);
         });
     }
 }

@@ -1,264 +1,253 @@
 @extends('layouts.app')
 
 @section('title', 'My Profile')
-@section('page-title', 'My Profile')
+
+@push('styles')
+    <style>
+        .profile-container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        .main-profile-card {
+            border-radius: 12px;
+            border: none;
+            overflow: hidden;
+            background: #fff;
+        }
+
+        .profile-header-bg {
+            background: var(--ocd-dark);
+            padding: 3rem 2rem;
+            position: relative;
+        }
+
+        .profile-avatar-wrapper {
+            width: 120px;
+            height: 120px;
+            border-radius: 50%;
+            background: #fff;
+            padding: 5px;
+            position: absolute;
+            bottom: -60px;
+            left: 40px;
+            box-shadow: 0 4px 15px rgba(0, 0, 0, 0.1);
+        }
+
+        .profile-avatar-inner {
+            width: 100%;
+            height: 100%;
+            border-radius: 50%;
+            background: var(--ocd-blue);
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 3rem;
+            font-weight: 700;
+            color: #fff;
+        }
+
+        .header-content-offset {
+            margin-top: 70px;
+            padding: 0 40px 30px;
+        }
+
+        .info-label-custom {
+            font-size: 0.7rem;
+            text-transform: uppercase;
+            letter-spacing: 1.2px;
+            color: #94a3b8;
+            font-weight: 800;
+            margin-bottom: 0.4rem;
+        }
+
+        /* Requirement Checklist Styling */
+        .requirement-item {
+            font-size: 0.75rem;
+            transition: all 0.3s ease;
+        }
+
+        .req-invalid {
+            color: #dc3545;
+        }
+
+        .req-valid {
+            color: #198754;
+            font-weight: 600;
+        }
+
+        .btn-ocd-save {
+            background-color: var(--ocd-blue);
+            color: #fff;
+            font-weight: 700;
+            border: none;
+        }
+
+        .btn-ocd-save:hover {
+            background-color: var(--ocd-dark);
+            color: #fff;
+        }
+
+        .btn-ocd-orange {
+            background-color: var(--ocd-orange);
+            color: #fff;
+            font-weight: 700;
+            border: none;
+        }
+
+        .btn-ocd-orange:hover {
+            background-color: #d66a1e;
+            color: #fff;
+        }
+    </style>
+@endpush
 
 @section('content')
-    <div class="page-header">
-        <h1><i class="bi bi-person-circle me-2"></i>My Profile</h1>
-    </div>
-
-    <div class="row g-4">
-
-        {{-- ── LEFT COLUMN: Avatar + Role Info ── --}}
-        <div class="col-lg-3">
-            <div class="card text-center p-4">
-
-                {{-- Initials Avatar --}}
-                @php
-                    $initials = collect(explode(' ', auth()->user()->name))
-                        ->map(fn($w) => strtoupper($w[0] ?? ''))
-                        ->take(2)
-                        ->implode('');
-                @endphp
-                <div class="mx-auto mb-3 d-flex align-items-center justify-content-center rounded-circle"
-                    style="width:90px;height:90px;background:var(--ocd-blue);color:#fff;font-size:2rem;font-weight:700;">
-                    {{ $initials }}
-                </div>
-
-                <h5 class="fw-bold mb-1">{{ $user->name }}</h5>
-                <span class="badge rounded-pill mb-2" style="background:var(--ocd-orange);color:#fff;font-size:.78rem;">
-                    {{ ucwords(str_replace('_', ' ', $user->role)) }}
-                </span>
-
-                <hr>
-
-                <div class="text-start small">
-                    <div class="mb-2">
-                        <span class="text-muted">
-                            <i class="bi bi-envelope me-1"></i>Email
-                        </span>
-                        <div class="fw-semibold text-truncate">{{ $user->email }}</div>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-muted">
-                            <i class="bi bi-building me-1"></i>Department
-                        </span>
-                        <div class="fw-semibold">{{ $user->department ?? '—' }}</div>
-                    </div>
-                    <div class="mb-2">
-                        <span class="text-muted">
-                            <i class="bi bi-telephone me-1"></i>Contact
-                        </span>
-                        <div class="fw-semibold">{{ $user->contact_number ?? '—' }}</div>
-                    </div>
-                    <div>
-                        <span class="text-muted">
-                            <i class="bi bi-clock me-1"></i>Last Login
-                        </span>
-                        <div class="fw-semibold">
-                            {{ $user->last_login_at ? $user->last_login_at->format('M d, Y h:i A') : '—' }}
-                        </div>
-                    </div>
-                </div>
-            </div>
+    <div class="profile-container">
+        <div class="mb-4">
+            <h1 class="h4 fw-bold text-dark"><i class="bi bi-person-vcard me-2 text-primary"></i>My Profile</h1>
+            <p class="text-muted small">Update your personal identity and security credentials.</p>
         </div>
 
-        {{-- ── RIGHT COLUMN: Edit Forms ── --}}
-        <div class="col-lg-9">
-
-            {{-- ── SECTION 1: Edit Profile Info ── --}}
-            <div class="card mb-4">
-                <div class="card-header d-flex align-items-center gap-2">
-                    <i class="bi bi-pencil-square" style="color:var(--ocd-orange);"></i>
-                    Edit Profile Information
+        <div class="card main-profile-card shadow-sm mb-5">
+            <div class="profile-header-bg">
+                <div class="profile-avatar-wrapper">
+                    <div class="profile-avatar-inner">
+                        {{ collect(explode(' ', auth()->user()->name))->map(fn($w) => strtoupper($w[0] ?? ''))->take(2)->implode('') }}
+                    </div>
                 </div>
-                <div class="card-body">
+            </div>
 
-                    @if ($errors->has('name') || $errors->has('email') || $errors->has('department') || $errors->has('contact_number'))
-                        <div class="alert alert-danger">
-                            <ul class="mb-0 ps-3">
-                                @foreach (['name', 'email', 'department', 'contact_number'] as $field)
-                                    @error($field)
-                                        <li>{{ $message }}</li>
-                                    @enderror
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
+            <div class="header-content-offset">
+                <div class="row align-items-end mb-5">
+                    <div class="col">
+                        <h2 class="fw-bold text-dark mb-0">{{ auth()->user()->name }}</h2>
+                        <p class="text-muted small mb-0"><i class="bi bi-envelope me-1"></i>{{ auth()->user()->email }}</p>
+                    </div>
+                </div>
 
-                    <form method="POST" action="{{ route('profile.update') }}">
-                        @csrf
-                        @method('PUT')
-
-                        <div class="row g-3">
-
-                            {{-- Full Name --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    Full Name <span class="text-danger">*</span>
-                                </label>
-                                <input type="text" name="name"
-                                    class="form-control @error('name') is-invalid @enderror"
+                <div class="row g-5">
+                    {{-- ── Personal Information ── --}}
+                    <div class="col-lg-6 border-end">
+                        <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-info-circle me-2 text-primary"></i>Identity
+                            Details</h5>
+                        <form method="POST" action="{{ route('profile.update') }}">
+                            @csrf @method('PUT')
+                            <div class="mb-3">
+                                <label class="info-label-custom d-block">Full Name</label>
+                                <input type="text" name="name" class="form-control bg-light border-0 py-2"
                                     value="{{ old('name', $user->name) }}" required>
                             </div>
+                            <div class="mb-3">
+                                <label class="info-label-custom d-block">Email Address</label>
+                                <input type="email" class="form-control py-2" value="{{ $user->email }}"
+                                    style="background-color: #f1f3f5; color: #6c757d; cursor: not-allowed; border: 1px solid #e9ecef;"
+                                    readonly tabindex="-1">
+                                <p class="text-muted mt-1" style="font-size: 0.65rem;">
+                                    <i class="bi bi-lock-fill me-1"></i>Contact Information Technology Service to change
+                                    your email.
+                                </p>
+                            </div>
+                            <div class="mb-4">
+                                <label class="info-label-custom d-block">Service / Division</label>
+                                <select name="division_id" class="form-select bg-light border-0 py-2" required>
+                                    @foreach ($divisions as $division)
+                                        <option value="{{ $division->id }}"
+                                            {{ $user->division_id == $division->id ? 'selected' : '' }}>
+                                            {{ $division->name }}</option>
+                                    @endforeach
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-ocd-save w-100 py-2">Save Profile Changes</button>
+                        </form>
+                    </div>
 
-                            {{-- Email --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    Email Address <span class="text-danger">*</span>
-                                </label>
-                                <input type="email" name="email"
-                                    class="form-control @error('email') is-invalid @enderror"
-                                    value="{{ old('email', $user->email) }}" required>
-                                <div class="form-text text-muted">
-                                    <i class="bi bi-info-circle"></i>
-                                    Changing your email will require re-verification.
+                    {{-- ── Security Settings ── --}}
+                    <div class="col-lg-6">
+                        <h5 class="fw-bold mb-4 text-dark"><i class="bi bi-shield-lock me-2 text-warning"></i>Security
+                            Settings</h5>
+                        <form method="POST" action="{{ route('profile.password') }}">
+                            @csrf @method('PUT')
+                            <div class="mb-3">
+                                <label class="info-label-custom d-block">Current Password</label>
+                                <div class="input-group">
+                                    <input type="password" name="current_password" id="curr_pass"
+                                        class="form-control bg-light border-0 py-2" placeholder="Current Password" required>
+                                    <button class="btn btn-light border-0" type="button"
+                                        onclick="togglePass('curr_pass', this)"><i class="bi bi-eye"></i></button>
                                 </div>
                             </div>
+                            <div class="mb-3">
+                                <label class="info-label-custom d-block">New Password</label>
+                                <div class="input-group">
+                                    <input type="password" name="password" id="new_pass"
+                                        class="form-control bg-light border-0 py-2" placeholder="New Password" required>
+                                    <button class="btn btn-light border-0" type="button"
+                                        onclick="togglePass('new_pass', this)"><i class="bi bi-eye"></i></button>
+                                </div>
 
-                            {{-- Department --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Department</label>
-                                <input type="text" name="department"
-                                    class="form-control @error('department') is-invalid @enderror"
-                                    value="{{ old('department', $user->department) }}" placeholder="e.g. Operations">
-                            </div>
-
-                            {{-- Contact Number --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Contact Number</label>
-                                <input type="text" name="contact_number"
-                                    class="form-control @error('contact_number') is-invalid @enderror"
-                                    value="{{ old('contact_number', $user->contact_number) }}"
-                                    placeholder="e.g. 09XXXXXXXXX">
-                            </div>
-
-                            {{-- Role (read-only) --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">Role</label>
-                                <input type="text" class="form-control"
-                                    value="{{ ucwords(str_replace('_', ' ', $user->role)) }}" disabled readonly>
-                                <div class="form-text text-muted">
-                                    Role can only be changed by a Super Admin.
+                                {{-- Password Restrictions UI --}}
+                                <div id="checklist" class="mt-3 p-3 bg-light rounded-3 shadow-sm border"
+                                    style="display:none;">
+                                    <p class="mb-2 fw-bold small text-dark">PASSWORD RESTRICTIONS:</p>
+                                    <div class="requirement-item req-invalid mb-1" id="len"><i
+                                            class="bi bi-x-circle me-2"></i>At least 16 Characters</div>
+                                    <div class="requirement-item req-invalid mb-1" id="cap"><i
+                                            class="bi bi-x-circle me-2"></i>Uppercase Letter (e.g., P)</div>
+                                    <div class="requirement-item req-invalid mb-1" id="low"><i
+                                            class="bi bi-x-circle me-2"></i>Lowercase Letter</div>
+                                    <div class="requirement-item req-invalid mb-1" id="num"><i
+                                            class="bi bi-x-circle me-2"></i>Numeric Digits</div>
+                                    <div class="requirement-item req-invalid" id="spec"><i
+                                            class="bi bi-x-circle me-2"></i>Special Characters</div>
                                 </div>
                             </div>
-
-                        </div>
-
-                        <div class="mt-4">
-                            <button type="submit" class="btn px-4"
-                                style="background:var(--ocd-blue);color:#fff;border:none;">
-                                <i class="bi bi-check-lg me-1"></i> Save Changes
-                            </button>
-                        </div>
-
-                    </form>
+                            <div class="mb-4">
+                                <label class="info-label-custom d-block">Confirm Password</label>
+                                <div class="input-group">
+                                    <input type="password" name="password_confirmation" id="conf_pass"
+                                        class="form-control bg-light border-0 py-2" placeholder="Confirm Password" required>
+                                    <button class="btn btn-light border-0" type="button"
+                                        onclick="togglePass('conf_pass', this)"><i class="bi bi-eye"></i></button>
+                                </div>
+                            </div>
+                            <button type="submit" class="btn btn-ocd-orange w-100 py-2">Update Security
+                                Credentials</button>
+                        </form>
+                    </div>
                 </div>
             </div>
-
-            {{-- ── SECTION 2: Change Password ── --}}
-            <div class="card">
-                <div class="card-header d-flex align-items-center gap-2">
-                    <i class="bi bi-shield-lock" style="color:var(--ocd-orange);"></i>
-                    Change Password
-                </div>
-                <div class="card-body">
-
-                    @if ($errors->has('current_password') || $errors->has('password'))
-                        <div class="alert alert-danger">
-                            <ul class="mb-0 ps-3">
-                                @foreach (['current_password', 'password'] as $field)
-                                    @error($field)
-                                        <li>{{ $message }}</li>
-                                    @enderror
-                                @endforeach
-                            </ul>
-                        </div>
-                    @endif
-
-                    <form method="POST" action="{{ route('profile.password') }}">
-                        @csrf
-                        @method('PUT')
-
-                        <div class="row g-3">
-
-                            {{-- Current Password --}}
-                            <div class="col-md-12">
-                                <label class="form-label fw-semibold">
-                                    Current Password <span class="text-danger">*</span>
-                                </label>
-                                <div class="input-group">
-                                    <input type="password" name="current_password" id="currentPassword"
-                                        class="form-control @error('current_password') is-invalid @enderror"
-                                        placeholder="Enter current password" required>
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('currentPassword', this)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- New Password --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    New Password <span class="text-danger">*</span>
-                                </label>
-                                <div class="input-group">
-                                    <input type="password" name="password" id="newPassword"
-                                        class="form-control @error('password') is-invalid @enderror"
-                                        placeholder="Min. 8 characters" required>
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('newPassword', this)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                            {{-- Confirm Password --}}
-                            <div class="col-md-6">
-                                <label class="form-label fw-semibold">
-                                    Confirm New Password <span class="text-danger">*</span>
-                                </label>
-                                <div class="input-group">
-                                    <input type="password" name="password_confirmation" id="confirmPassword"
-                                        class="form-control" placeholder="Re-enter new password" required>
-                                    <button class="btn btn-outline-secondary" type="button"
-                                        onclick="togglePassword('confirmPassword', this)">
-                                        <i class="bi bi-eye"></i>
-                                    </button>
-                                </div>
-                            </div>
-
-                        </div>
-
-                        <div class="mt-4">
-                            <button type="submit" class="btn px-4"
-                                style="background:var(--ocd-orange);color:#fff;border:none;">
-                                <i class="bi bi-lock me-1"></i> Update Password
-                            </button>
-                        </div>
-
-                    </form>
-                </div>
-            </div>
-
         </div>
     </div>
 @endsection
 
 @push('scripts')
     <script>
-        function togglePassword(inputId, btn) {
-            const input = document.getElementById(inputId);
+        function togglePass(id, btn) {
+            const input = document.getElementById(id);
             const icon = btn.querySelector('i');
-            if (input.type === 'password') {
-                input.type = 'text';
-                icon.classList.replace('bi-eye', 'bi-eye-slash');
-            } else {
-                input.type = 'password';
-                icon.classList.replace('bi-eye-slash', 'bi-eye');
-            }
+            input.type = input.type === 'password' ? 'text' : 'password';
+            icon.className = input.type === 'password' ? 'bi bi-eye' : 'bi bi-eye-slash';
         }
+
+        document.getElementById('new_pass').addEventListener('focus', () => document.getElementById('checklist').style
+            .display = 'block');
+
+        document.getElementById('new_pass').addEventListener('input', function() {
+            const val = this.value;
+            const rules = {
+                len: val.length >= 16,
+                cap: /[A-Z]/.test(val),
+                low: /[a-z]/.test(val),
+                num: /[0-9]/.test(val),
+                spec: /[!@#$%^&*(),.?":{}|<>]/.test(val)
+            };
+            Object.entries(rules).forEach(([id, ok]) => {
+                const el = document.getElementById(id);
+                el.className = ok ? 'text-success fw-bold' : 'text-danger';
+                el.querySelector('i').className = ok ? 'bi bi-check-circle-fill me-2' :
+                    'bi bi-x-circle me-2';
+            });
+        });
     </script>
 @endpush
